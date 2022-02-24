@@ -344,6 +344,10 @@ def main(args):
             pfo.hdr.date_obs = str(beginTime.strftime("%Y-%m-%dT%H:%M:%S"))     
             pfo.hdr.MJD_epoch = pfu.get_ld(mjd)
             
+            ## Coherent dedispersion information
+            pfo.hdr.chan_dm = DM
+            
+            
             ## Setup the subintegration structure
             pfo.sub.tsubint = pfo.hdr.dt*pfo.hdr.nsblk
             pfo.sub.bytes_per_subint = pfo.hdr.nchan*pfo.hdr.npol*pfo.hdr.nsblk*pfo.hdr.nbits//8
