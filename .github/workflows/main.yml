@@ -5,7 +5,22 @@ on:
   schedule:
     - cron:  '30 5 3 * *'
 jobs:
+  pre_build:
+    runs-on: ubuntu-latest
+    paths_ignore:
+      - '**/README.md'
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v3.4.1
+        with:
+          concurrent_skipping: 'same_content'
+          skip_after_successful_duplicate: 'true'
+          do_not_skip: '["pull_request", "workflow_dispatch", "schedule"]'
   build:
+    needs: pre_build
+    if: ${{ needs.pre_build.outputs.should_skip != 'true' }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
