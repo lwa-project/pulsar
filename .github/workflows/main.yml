@@ -7,8 +7,6 @@ on:
 jobs:
   pre_build:
     runs-on: ubuntu-latest
-    paths_ignore:
-      - '**/README.md'
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -16,6 +14,7 @@ jobs:
         uses: fkirc/skip-duplicate-actions@v3.4.1
         with:
           concurrent_skipping: 'same_content'
+          paths_ignore: '["**/README.md"]'
           skip_after_successful_duplicate: 'true'
           do_not_skip: '["pull_request", "workflow_dispatch", "schedule"]'
   build:
