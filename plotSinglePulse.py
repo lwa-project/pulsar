@@ -340,7 +340,10 @@ class RefreshAwareToolbar(NavigationToolbar2WxAgg):
         NavigationToolbar2WxAgg.__init__(self, plotCanvas)
         self.refreshCallback = refreshCallback
         POSITION_OF_CONFIGURE_SUBPLOTS_BTN = 6
-        self.DeleteToolByPos(POSITION_OF_CONFIGURE_SUBPLOTS_BTN)
+        try:
+            self.DeleteToolByPos(POSITION_OF_CONFIGURE_SUBPLOTS_BTN)
+        except wx.wxAssertionError:
+            pass
         
     def home(self, *args):
         NavigationToolbar2WxAgg.home(self, *args)
