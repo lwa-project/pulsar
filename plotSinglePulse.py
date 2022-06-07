@@ -678,7 +678,7 @@ class SinglePulse_GUI(object):
         self.ax2 = self.frame.figure2.gca()
         
         if len(valid) > self.maxPoints and not self.fullRes:
-            decim = len(valid)/self.maxPoints
+            decim = len(valid)//self.maxPoints
             validPlot = valid[::decim]
         else:
             validPlot = valid
@@ -1044,6 +1044,12 @@ class SinglePulse_GUI(object):
                     ### Recenter first
                     self.makeMark(self.data[best,2], self.data[best,0])
                     
+                    print("Time: %.3f s" % self.data.data[best,2])
+                    print("DM: %.3f pc cm^-3" % self.data.data[best,0])
+                    print("S/N: %.2f" % self.data.data[best,1])
+                    print("Width: %.3f ms" % self.data.data[best,4])
+                    print("Flagged? %s" % self.data.mask[best,0])
+                    
                     WaterfallDisplay(self.frame, self.fitsname, self.data[best,2], self.data[best,0], self.data[best,4])
                 else:
                     print("No PSRFITS file specified, skipping")
@@ -1233,7 +1239,7 @@ class SinglePulse_GUI(object):
         if event.inaxes:
             clickX = event.xdata
             clickY = event.ydata
-            
+        
             self.frame.statusbar.SetStatusText("%.3f s, %.3f pc cm^-3" % (clickX, clickY))
         else:
             self.frame.statusbar.SetStatusText("")
@@ -1248,7 +1254,7 @@ class SinglePulse_GUI(object):
         self.frame.figure1c.canvas.mpl_disconnect(self.cidpress1c)
         self.frame.figure2.canvas.mpl_disconnect(self.cidpress2)
         self.frame.figure2.canvas.mpl_disconnect(self.cidkey2)
-        self.frame.figure1a.canvas.mpl_disconnect(self.cidmotion)
+        self.frame.figure2.canvas.mpl_disconnect(self.cidmotion)
 
 
 ID_OPEN    = 10
@@ -1511,7 +1517,7 @@ class MainWindow(wx.Frame):
         self.canvas2.Bind(wx.EVT_KEY_UP,  self.onKeyPress)
         
         # Make the plots re-sizable
-        self.Bind(wx.EVT_PAINT, self.resizePlots)
+        # self.Bind(wx.EVT_PAINT, self.resizePlots)
         self.Bind(wx.EVT_SIZE, self.onSize)
         
         # Window manager close
@@ -2482,20 +2488,20 @@ class WaterfallDisplay(wx.Frame):
         wx.Yield()
         
         i = self.index
-        toUse = numpy.arange(self.spec.shape[2]/10, 9*self.spec.shape[2]/10)
+        toUse = numpy.arange(self.spec.shape[2]//10, 9*self.spec.shape[2]//10)
         
         try:
             from _helper import FastAxis1Percentiles5And99
             if self.bandpass:
-                self.limitsBandpass[i] = list(FastAxis1Percentiles5And99(self.specBandpass.data, i, chanMin=self.spec.shape[2]/10, chanMax=9*self.spec.shape[2]/10))
+                self.limitsBandpass[i] = list(FastAxis1Percentiles5And99(self.specBandpass.data, i, chanMin=self.spec.shape[2]//10, chanMax=9*self.spec.shape[2]//10))
             else:
                 self.limits[i] = list(FastAxis1Percentiles5And99(self.spec.data, i))
         except ImportError:
             if self.bandpass:
-                self.limitsBandpass[i] = [percentile(self.specBandpass[:,i,toUse].ravel(), 5), percentile(self.specBandpass[:,i,toUse].ravel(), 99)] 
+                self.limitsBandpass[i] = numpy.percentile(self.specBandpass[:,i,toUse], (5, 99))
             else:
-                self.limits[i] = [percentile(self.spec[:,i,:].ravel(), 5), percentile(self.spec[:,i,:].ravel(), 99)]
-            
+                self.limits[i] = numpy.percentile(self.spec[:,i,:], (5, 99))
+                
         if self.usedB:
             if self.bandpass:
                 self.limitsBandpass[i] = [to_dB(v) for v in self.limitsBandpass[i]]
@@ -2721,6 +2727,7 @@ class WaterfallDisplay(wx.Frame):
         Compute and save everything needed for the plot.
         """
         
+        print("Loading PSRFITS metadata...")
         hdulist = astrofits.open(self.fitsname, mode='readonly', memmap=True)
                     
         ## File specifics
@@ -2764,6 +2771,7 @@ class WaterfallDisplay(wx.Frame):
         subIntStop  = min([subIntStop, nChunks-1])
         
         ## Spectra extraction
+        print("Extracting event region...")
         samp, tRel, spec, mask = [], [], [], []
         for i in range(subIntStart, subIntStop+1):
             ### Access the correct subintegration
@@ -2774,7 +2782,7 @@ class WaterfallDisplay(wx.Frame):
             ###  * the weight mask, converted to binary - msk
             ###  * the scale and offset values - bscl and bzero
             ###  * the actual data - data
-            tOff = subint[1] - subint[0]/2
+            tOff = subint[1] - subint[0]//2
             msk = numpy.where(subint[13] >= 0.5, False, True)
             bzero = subint[14]
             bscl = subint[15]
@@ -2790,7 +2798,7 @@ class WaterfallDisplay(wx.Frame):
             ### to the HDF5 file
             for j in range(nSubs):
                 s = i*nSubs + j
-                t = subint[1] - self.t + tInt*(j-nSubs/2)
+                t = subint[1] - self.t + tInt*(j-nSubs//2)
                 d = data[:,:,j]*bscl + bzero
                 samp.append( s )
                 tRel.append( t )
@@ -2803,11 +2811,12 @@ class WaterfallDisplay(wx.Frame):
         hdulist.close()
         
         ## Bandpassing
+        print("Computing bandpass...")
         try:
             from _helper import FastAxis0Median
             meanSpec = FastAxis0Median(self.spec)
         except ImportError:
-            meanSpec = numpy.median(self.spec, axis=0)
+            meanSpec = numpy.mean(self.spec, axis=0)
             
         ### Come up with an appropriate smoothing window (wd) and order (od)
         ws = int(round(self.spec.shape[2]/10.0))
@@ -2843,20 +2852,22 @@ class WaterfallDisplay(wx.Frame):
         self.specBandpass = self.specBandpass[valid,:,:]
         
         # Run the incoherent dedispersion on the data
+        print("Dedispersing data...")
         self.specD = self.spec*0
         self.specBandpassD = self.specBandpass*0
         for i in range(self.specD.shape[1]):
             self.specD[:,i,:] = incoherent(freq, self.spec[:,i,:], tInt, self.dm, boundary='fill', fill_value=numpy.nan)
             self.specBandpassD[:,i,:] = incoherent(freq, self.specBandpass[:,i,:], tInt, self.dm, boundary='fill', fill_value=numpy.nan)
-            
+        
         # Calculate the plot limits
+        print("Setting default plot limits...")
         self.limits = [None,]*self.spec.shape[1]
         self.limitsBandpass = [None,]*self.spec.shape[1]
         
         try:
             from _helper import FastAxis1MinMax
             limits0 = FastAxis1MinMax(self.spec)
-            limits1 = FastAxis1MinMax(self.specBandpass, chanMin=self.spec.shape[2]/10, chanMax=9*self.spec.shape[2]/10)
+            limits1 = FastAxis1MinMax(self.specBandpass, chanMin=self.spec.shape[2]//10, chanMax=9*self.spec.shape[2]//10)
             if self.usedB:
                 limits0 = to_dB(limits0)
                 limits1 = to_dB(limits1)
@@ -2864,7 +2875,7 @@ class WaterfallDisplay(wx.Frame):
                 self.limits[i] = list(limits0[i,:])
                 self.limitsBandpass[i] = list(limits1[i,:])
         except ImportError:
-            toUse = range(self.spec.shape[2]/10, 9*self.spec.shape[2]/10+1)
+            toUse = range(self.spec.shape[2]//10, 9*self.spec.shape[2]//10+1)
             for i in range(self.spec.shape[1]):
                 self.limits[i] = findLimits(self.spec[:,i,:], usedB=self.usedB)
             for i in range(self.spec.shape[1]):
@@ -2877,6 +2888,7 @@ class WaterfallDisplay(wx.Frame):
         # Suggest a time decimation factor
         self.decFactor = max([1, int(round(self.width / 10.0 / self.parent.data.meta.dt))])
         
+        print("Ready")
         return True
         
     def render(self):
@@ -2906,12 +2918,12 @@ class WaterfallDisplay(wx.Frame):
             limits = self.limits[self.index]
             
         # Decimate
-        nKeep = (tRel.size/self.decFactor)*self.decFactor
+        nKeep = (tRel.size//self.decFactor)*self.decFactor
         tRel = tRel[:nKeep]
-        tRel.shape = (nKeep/self.decFactor, self.decFactor)
+        tRel.shape = (nKeep//self.decFactor, self.decFactor)
         tRel = tRel.mean(axis=1)
         spec = spec[:,:nKeep]
-        spec.shape = (spec.shape[0], nKeep/self.decFactor, self.decFactor)
+        spec.shape = (spec.shape[0], nKeep//self.decFactor, self.decFactor)
         spec = spec.mean(axis=2)
         
         # Plot Waterfall
@@ -2945,7 +2957,7 @@ class WaterfallDisplay(wx.Frame):
         if self.profile:
             prof = specD.sum(axis=1)
             prof = prof[:nKeep]
-            prof.shape = (nKeep/self.decFactor, self.decFactor)
+            prof.shape = (nKeep//self.decFactor, self.decFactor)
             prof = prof.mean(axis=1)
             ax = self.addSubplotAxes(self.figure, self.ax1, [0.7, 0.7, 0.25, 0.25])
             ax.plot(tRel, prof)
@@ -3312,7 +3324,7 @@ class WaterfallDecimationAdjust(wx.Frame):
         self.Close()
         
     def __getBinsPerPulse(self):
-        return self.parent.width / (self.parent.decFactor * self.parent.parent.data.meta.dt)
+        return self.parent.width // (self.parent.decFactor * self.parent.parent.data.meta.dt)
 
 
 class HtmlWindow(wx.html.HtmlWindow): 
