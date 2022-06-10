@@ -9,12 +9,17 @@ from __future__ import print_function, division
 
 import os
 import sys
+import glob
 import math
 import time
 import numpy
+import shutil
+import tarfile
 import argparse
+import tempfile
 import subprocess
 from datetime import datetime
+from operator import sub as opsub
 from multiprocessing import Pool
 from scipy.special import erf
 from scipy.interpolate import interp1d
@@ -54,6 +59,27 @@ if 'phoenix' in wx.PlatformInfo:
 else:
     AppendMenuItem = lambda x, y: x.AppendItem(y)
     AppendMenuMenu = lambda *args, **kwds: args[0].AppendMenu(*args[1:], **kwds)
+
+
+def get_aspect(ax):
+    """
+    Function to return the aspect ratio of a figure.
+    
+    From:
+      https://stackoverflow.com/questions/41597177/get-aspect-ratio-of-axes
+    """
+    
+    # Total figure size
+    figW, figH = ax.get_figure().get_size_inches()
+    # Axis size on figure
+    _, _, w, h = ax.get_position().bounds
+    # Ratio of display units
+    disp_ratio = (figH * h) / (figW * w)
+    # Ratio of data units
+    # Negative over negative because of the order of subtraction
+    data_ratio = opsub(*ax.get_ylim()) / opsub(*ax.get_xlim())
+
+    return disp_ratio / data_ratio
 
 
 def telescope2tempo(tel):
@@ -412,6 +438,25 @@ class SinglePulse_GUI(object):
         print("Loading %i files with a pulse S/N threshold of %.1f" % (len(filenames), threshold))
         tStart = time.time()
 
+        # If it a tarfile?
+        if os.path.splitext(filenames[0])[1] in ('.tar.gz', '.tgz'):
+            print("%6.3f s - Extracting tar file" % (time.time()-tStart,))
+            
+            if len(filenames) > 1:
+                raise RuntimeError("Only one tarfile can be provided")
+                
+            self.tempdir = tempfile.mkdtemp(prefix='single-pulse-')
+            tf = tarfile.open(filenames[0], mode='r:*')
+            for entry in tf:
+                if entry.isdir():
+                    continue
+                filename = os.path.basename(entry.name)
+                filename = os.path.join(self.tempdir, filename)
+                with open(filename, 'wb') as fh:
+                    fh.write(tf.extractfile(entry.name).read())
+                    
+            filenames = glob.glob(os.path.join(self.tempdir, '*'))
+            
         # Save the filenames
         self.filenames = filenames
         self.fitsname = fitsname
@@ -503,6 +548,11 @@ class SinglePulse_GUI(object):
         except:
             pass
             
+        try:
+            shutil.rmtree(self.tempdir)
+        except (AttributeError, OSError):
+            pass
+        del self.tempdir
         print("%6.3f s - Finished preparing data" % (time.time() - tStart))
         
     def getClosestPulse(self, t, dm):
@@ -512,10 +562,15 @@ class SinglePulse_GUI(object):
         
         # Filter things with the right S/N and pulse width
         sLow, wLow, wHigh = self.dataThreshold
-        valid = numpy.where( (self.data[:,1]>=sLow) & (self.data[:,4]>=wLow) & (self.data[:,4]<=wHigh) )[0]
+        valid = numpy.where( (self.data[:,1]>=sLow) \
+                             & (self.data[:,4]>=wLow) \
+                             & (self.data[:,4]<=wHigh) )[0]
         
-        # Find the best match
-        d = (self.data[valid,2]-t)**2 + (self.data[valid,0]-dm)**2
+        # Grab the current image scale
+        aspect = get_aspect(self.ax2)
+        
+        # Find the best match after taking into account the plot aspect ratio
+        d = ((self.data[valid,2]-t)/aspect)**2 + (self.data[valid,0]-dm)**2
         best = valid[numpy.argmin(d)]
         print('-> click at %.1f s, %.3f pc cm^-3 closest to pulse %i at %.1f, %.3f' % (t, dm, best, self.data[best,2], self.data[best,0]))
         
@@ -534,8 +589,8 @@ class SinglePulse_GUI(object):
         tCutLow = t0 + (self.dmMin-dm0)*slope
         tCutHigh = t1 + (self.dmMax-dm1)*slope
         
-        valid1 = numpy.where( (self.data[:,2] >= tCutLow ) & \
-                        (self.data[:,2] <= tCutHigh) )[0]
+        valid1 = numpy.where( (self.data[:,2] >= tCutLow ) \
+                              & (self.data[:,2] <= tCutHigh) )[0]
                         
         deltaT1 = self.data[valid1,2] + (self.data[valid1,0]-dm0)*slope - t0
         deltaT2 = self.data[valid1,2] + (self.data[valid1,0]-dm1)*slope - t1
@@ -548,8 +603,8 @@ class SinglePulse_GUI(object):
         Given a time at DM0 and another time at DM1, select everything in DM between.
         """
         
-        valid1 = numpy.where( (self.data[:,0] >= dm0) & \
-                        (self.data[:,0] <= dm1) )[0]
+        valid1 = numpy.where( (self.data[:,0] >= dm0) \
+                              & (self.data[:,0] <= dm1) )[0]
                         
         return valid1
         
@@ -598,7 +653,7 @@ class SinglePulse_GUI(object):
         try:
             tLowNew, tHighNew = self.ax2.get_xlim()
             dmLowNew, dmHighNew = self.ax2.get_ylim()
-        except:
+        except Exception as e:
             tLowNew, tHighNew = self.dataWindow[0], self.dataWindow[1]
             dmLowNew, dmHighNew = self.dataWindow[2], self.dataWindow[3]
             
@@ -613,10 +668,10 @@ class SinglePulse_GUI(object):
             
         sMin, wMin, wMax = self.dataThreshold
         tLow, tHigh, dmLow, dmHigh = self.dataWindow
-        valid = numpy.where( (self.data[:,2] >= tLow ) & (self.data[:,2] <= tHigh ) & \
-                        (self.data[:,0] >= dmLow) & (self.data[:,0] <= dmHigh) & \
-                        (self.data[:,1] >= sMin ) & (self.data[:,4] >= wMin  ) & \
-                        (self.data[:,4] <= wMax)                               )[0]
+        valid = numpy.where( (self.data[:,2] >= tLow ) & (self.data[:,2] <= tHigh ) \
+                             & (self.data[:,0] >= dmLow) & (self.data[:,0] <= dmHigh) \
+                             & (self.data[:,1] >= sMin ) & (self.data[:,4] >= wMin  ) \
+                             & (self.data[:,4] <= wMax)                               )[0]
         self.limits = [None,]*self.data.shape[1]
         for i in range(self.data.shape[1]):
             self.limits[i] = findLimits(self.data[valid,i], usedB=False)
@@ -684,11 +739,11 @@ class SinglePulse_GUI(object):
             validPlot = valid
             
         m = self.ax2.scatter(self.data[validPlot,2], self.data[validPlot,0], 
-                        c=self.data[validPlot,self.colorProperty], 
-                        s=self.data[validPlot,self.sizeProperty]*5, 
-                        cmap=self.cmap, norm=self.norm(*self.limits[self.colorProperty]), 
-                        alpha=alpha, 
-                        marker=self.plotSymbol, edgecolors='face')
+                             c=self.data[validPlot,self.colorProperty], 
+                             s=self.data[validPlot,self.sizeProperty]*5, 
+                             cmap=self.cmap, norm=self.norm(*self.limits[self.colorProperty]), 
+                             alpha=alpha, 
+                             marker=self.plotSymbol, edgecolors='face')
         try:
             cm = self.frame.figure.colorbar(m, use_gridspec=True)
         except:
@@ -706,10 +761,10 @@ class SinglePulse_GUI(object):
             
         if valid2 is not None:
             self.ax2.scatter(self.data[valid2,2], self.data[valid2,0], 
-                            c='black', 
-                            s=self.data[valid2,self.sizeProperty]*5, 
-                            alpha=1.0, 
-                            marker=self.plotSymbol, edgecolors='black')
+                             c='black', 
+                             s=self.data[valid2,self.sizeProperty]*5, 
+                             alpha=1.0, 
+                             marker=self.plotSymbol, edgecolors='black')
                             
         self.ax2.set_xlim((tLow,tHigh))
         self.ax2.set_ylim((dmLow,dmHigh))
@@ -1827,7 +1882,7 @@ ID_THRESHOLD_OK = 106
 
 class ThresholdAdjust(wx.Frame):
     def __init__ (self, parent):	
-        wx.Frame.__init__(self, parent, title='Pulse Filtering Adjustment', size=(400, 150))
+        wx.Frame.__init__(self, parent, title='Pulse Filtering Adjustment')
         
         self.parent = parent
         
@@ -1838,7 +1893,7 @@ class ThresholdAdjust(wx.Frame):
     def initUI(self):
         row = 0
         panel = wx.Panel(self)
-        sizer = wx.GridBagSizer(5, 5)
+        sizer = wx.GridBagSizer(0, 0)
         
         thr = wx.StaticText(panel, label='Min. S/N Threshold:')
         thrText = wx.TextCtrl(panel)
@@ -1878,9 +1933,10 @@ class ThresholdAdjust(wx.Frame):
         #
         
         ok = wx.Button(panel, ID_THRESHOLD_OK, 'Ok', size=(56, 28))
-        sizer.Add(ok, pos=(row+0, 3), flag=wx.RIGHT|wx.BOTTOM, border=5)
+        sizer.Add(ok, pos=(row+0, 3), flag=wx.ALL, border=5)
         
-        panel.SetSizerAndFit(sizer)
+        panel.SetSizer(sizer)
+        sizer.Fit(self)
 
         self.tText = thrText
         self.lText = lwrText
@@ -1977,7 +2033,7 @@ ID_DECIMATION_OK = 202
 
 class DecimationAdjust(wx.Frame):
     def __init__ (self, parent):	
-        wx.Frame.__init__(self, parent, title='Display Decimation Adjustment', size=(400, 125))
+        wx.Frame.__init__(self, parent, title='Display Decimation Adjustment')
         
         self.parent = parent
         
@@ -1988,7 +2044,7 @@ class DecimationAdjust(wx.Frame):
     def initUI(self):
         row = 0
         panel = wx.Panel(self)
-        sizer = wx.GridBagSizer(5, 5)
+        sizer = wx.GridBagSizer(0, 0)
         
         upr = wx.StaticText(panel, label='Max. Points to Plot:')
         uprText = wx.TextCtrl(panel)
@@ -2010,9 +2066,10 @@ class DecimationAdjust(wx.Frame):
         #
         
         ok = wx.Button(panel, ID_DECIMATION_OK, 'Ok', size=(56, 28))
-        sizer.Add(ok, pos=(row+0, 3), flag=wx.RIGHT|wx.BOTTOM, border=5)
+        sizer.Add(ok, pos=(row+0, 3), flag=wx.ALL, border=5)
         
-        panel.SetSizerAndFit(sizer)
+        panel.SetSizer(sizer)
+        sizer.Fit(self)
 
         self.uText = uprText
         
@@ -3035,7 +3092,7 @@ ID_WATERFALL_CONTRAST_OK = 404
 
 class WaterfallContrastAdjust(wx.Frame):
     def __init__ (self, parent):	
-        wx.Frame.__init__(self, parent, title='Waterfall Contrast Adjustment', size=(330, 175))
+        wx.Frame.__init__(self, parent, title='Waterfall Contrast Adjustment')
         
         self.parent = parent
         
@@ -3048,14 +3105,14 @@ class WaterfallContrastAdjust(wx.Frame):
     def initUI(self):
         row = 0
         panel = wx.Panel(self)
-        sizer = wx.GridBagSizer(5, 5)
+        sizer = wx.GridBagSizer(0, 0)
         
         pol = self.parent.data_products[self.parent.index]
         if self.parent.bandpass:
             typ = wx.StaticText(panel, label='%s - Bandpass' % (pol,))
         else:
             typ = wx.StaticText(panel, label='%s' % (pol,))
-        sizer.Add(typ, pos=(row+0, 0), span=(1,4), flag=wx.EXPAND|wx.LEFT|wx.RIGHT, border=5)
+        sizer.Add(typ, pos=(row+0, 0), span=(1,4), flag=wx.EXPAND|wx.ALL, border=5)
         
         row += 1
         
@@ -3093,9 +3150,10 @@ class WaterfallContrastAdjust(wx.Frame):
         #
         
         ok = wx.Button(panel, ID_WATERFALL_CONTRAST_OK, 'Ok', size=(56, 28))
-        sizer.Add(ok, pos=(row+0, 3), flag=wx.RIGHT|wx.BOTTOM, border=5)
+        sizer.Add(ok, pos=(row+0, 3), flag=wx.ALL, border=5)
         
-        panel.SetSizerAndFit(sizer)
+        panel.SetSizer(sizer)
+        sizer.Fit(self)
 
         self.uText = uprText
         self.lText = lwrText
@@ -3226,7 +3284,7 @@ ID_WATERFALL_DECIMATION_OK = 502
 
 class WaterfallDecimationAdjust(wx.Frame):
     def __init__ (self, parent):	
-        wx.Frame.__init__(self, parent, title='Waterfall Decimation Adjustment', size=(400, 125))
+        wx.Frame.__init__(self, parent, title='Waterfall Decimation Adjustment')
         
         self.parent = parent
         
@@ -3237,7 +3295,7 @@ class WaterfallDecimationAdjust(wx.Frame):
     def initUI(self):
         row = 0
         panel = wx.Panel(self)
-        sizer = wx.GridBagSizer(5, 5)
+        sizer = wx.GridBagSizer(0, 0)
         
         upr = wx.StaticText(panel, label='Time Decimation:')
         uprText = wx.TextCtrl(panel)
@@ -3264,9 +3322,10 @@ class WaterfallDecimationAdjust(wx.Frame):
         #
         
         ok = wx.Button(panel, ID_WATERFALL_DECIMATION_OK, 'Ok', size=(56, 28))
-        sizer.Add(ok, pos=(row+0, 3), flag=wx.RIGHT|wx.BOTTOM, border=5)
+        sizer.Add(ok, pos=(row+0, 3), flag=wx.ALL, border=5)
         
-        panel.SetSizerAndFit(sizer)
+        panel.SetSizer(sizer)
+        sizer.Fit(self)
 
         self.uText = uprText
         self.rText = rngText
@@ -3463,7 +3522,7 @@ are:
         
         self.CreateStatusBar()
         
-        panel.SetSizer(vbox)
+        panel.SetSizerAndFit(vbox)
 
 
 def main(args):
