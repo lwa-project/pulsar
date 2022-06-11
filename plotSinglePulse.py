@@ -645,7 +645,7 @@ class SinglePulse_GUI(object):
         
         self.connect()
         
-    def draw(self, recompute=False):
+    def draw(self, recompute=False, is_callback=False):
         """
         Draw the waterfall diagram and the total power with time.
         """
@@ -729,60 +729,61 @@ class SinglePulse_GUI(object):
             alpha = 1.0
             
         # Plot 2 - Waterfall
-        self.frame.figure2.clf()
-        self.ax2 = self.frame.figure2.gca()
-        
         if len(valid) > self.maxPoints and not self.fullRes:
             decim = len(valid)//self.maxPoints
             validPlot = valid[::decim]
         else:
             validPlot = valid
             
-        m = self.ax2.scatter(self.data[validPlot,2], self.data[validPlot,0], 
-                             c=self.data[validPlot,self.colorProperty], 
-                             s=self.data[validPlot,self.sizeProperty]*5, 
-                             cmap=self.cmap, norm=self.norm(*self.limits[self.colorProperty]), 
-                             alpha=alpha, 
-                             marker=self.plotSymbol, edgecolors='face')
-        try:
-            cm = self.frame.figure.colorbar(m, use_gridspec=True)
-        except:
-            if len(self.frame.figure2.get_axes()) > 1:
-                self.frame.figure2.delaxes( self.frame.figure2.get_axes()[-1] )
-            cm = self.frame.figure2.colorbar(m)
-        if self.colorProperty == 0:
-            cm.ax.set_ylabel('DM [pc cm$^{-3}$]')
-        elif self.colorProperty == 1:
-            cm.ax.set_ylabel('S/N')
-        elif self.colorProperty == 2:
-            cm.ax.set_ylabel('Elapsed Time [s]')
-        else:
-            cm.ax.set_ylabel('Width [ms]')
+        if not is_callback:
+            self.frame.figure2.clf()
+            self.ax2 = self.frame.figure2.gca()
             
-        if valid2 is not None:
-            self.ax2.scatter(self.data[valid2,2], self.data[valid2,0], 
-                             c='black', 
-                             s=self.data[valid2,self.sizeProperty]*5, 
-                             alpha=1.0, 
-                             marker=self.plotSymbol, edgecolors='black')
-                            
-        self.ax2.set_xlim((tLow,tHigh))
-        self.ax2.set_ylim((dmLow,dmHigh))
-        self.ax2.set_xlabel('Elapsed Time [s]')
-        self.ax2.set_ylabel('DM [pc cm$^{-3}$]')
-        
-        if self.oldMarkT is not None:
-            if recompute:
-                self.oldMarkT = None
-                self.oldMarkD = None
-                self.makeMark(*self.pulseClick)
+            m = self.ax2.scatter(self.data[validPlot,2], self.data[validPlot,0], 
+                                 c=self.data[validPlot,self.colorProperty], 
+                                 s=self.data[validPlot,self.sizeProperty]*5, 
+                                 cmap=self.cmap, norm=self.norm(*self.limits[self.colorProperty]), 
+                                 alpha=alpha, 
+                                 marker=self.plotSymbol, edgecolors='face')
+            try:
+                cm = self.frame.figure.colorbar(m, use_gridspec=True)
+            except:
+                if len(self.frame.figure2.get_axes()) > 1:
+                    self.frame.figure2.delaxes( self.frame.figure2.get_axes()[-1] )
+                cm = self.frame.figure2.colorbar(m)
+            if self.colorProperty == 0:
+                cm.ax.set_ylabel('DM [pc cm$^{-3}$]')
+            elif self.colorProperty == 1:
+                cm.ax.set_ylabel('S/N')
+            elif self.colorProperty == 2:
+                cm.ax.set_ylabel('Elapsed Time [s]')
             else:
-                self.ax2.lines.extend(self.oldMarkT)
-                self.ax2.lines.extend(self.oldMarkD)
+                cm.ax.set_ylabel('Width [ms]')
                 
-        self.frame.figure2.tight_layout()
-        self.frame.canvas2.draw()
-        
+            if valid2 is not None:
+                self.ax2.scatter(self.data[valid2,2], self.data[valid2,0], 
+                                 c='black', 
+                                 s=self.data[valid2,self.sizeProperty]*5, 
+                                 alpha=1.0, 
+                                 marker=self.plotSymbol, edgecolors='black')
+                                
+            self.ax2.set_xlim((tLow,tHigh))
+            self.ax2.set_ylim((dmLow,dmHigh))
+            self.ax2.set_xlabel('Elapsed Time [s]')
+            self.ax2.set_ylabel('DM [pc cm$^{-3}$]')
+            
+            if self.oldMarkT is not None:
+                if recompute:
+                    self.oldMarkT = None
+                    self.oldMarkD = None
+                    self.makeMark(*self.pulseClick)
+                else:
+                    self.ax2.lines.extend(self.oldMarkT)
+                    self.ax2.lines.extend(self.oldMarkD)
+                    
+            self.frame.figure2.tight_layout()
+            self.frame.canvas2.draw()
+            
         # Plot 1(a) - SNR histogram
         self.frame.figure1a.clf()
         self.ax1a = self.frame.figure1a.gca()
@@ -871,14 +872,6 @@ class SinglePulse_GUI(object):
         self.cidpress2  = self.frame.figure2.canvas.mpl_connect('button_press_event', self.on_press2)
         self.cidkey2    = self.frame.figure2.canvas.mpl_connect('key_press_event', self.on_key2)
         self.cidmotion  = self.frame.figure2.canvas.mpl_connect('motion_notify_event', self.on_motion)
-        self.frame.toolbar.update = self.on_update
-        
-    def on_update(self, *args):
-        """
-        Override the toolbar 'update' operation.
-        """
-        
-        self.frame.toolbar.set_history_buttons()
         
     def on_press1a(self, event):
         """
@@ -1509,7 +1502,7 @@ class MainWindow(wx.Frame):
         hbox3 = wx.BoxSizer(wx.VERTICAL)
         self.figure2 = Figure(figsize=(6,2))
         self.canvas2 = FigureCanvasWxAgg(panel3, -1, self.figure2)
-        self.toolbar = RefreshAwareToolbar(self.canvas2, refreshCallback=self.data.draw)
+        self.toolbar = RefreshAwareToolbar(self.canvas2, refreshCallback=lambda: self.data.draw(is_callback=True))
         self.toolbar.Realize()
         hbox3.Add(self.canvas2, 1, wx.ALIGN_LEFT | wx.EXPAND)
         hbox3.Add(self.toolbar, 0, wx.ALIGN_LEFT)
