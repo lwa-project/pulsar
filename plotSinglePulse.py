@@ -488,7 +488,7 @@ class SinglePulse_GUI(object):
         data = numpy.concatenate(data)
         
         self.meta = meta
-        self.data = numpy.ma.array(data, mask=numpy.zeros(data.shape, dtype=numpy.bool))
+        self.data = numpy.ma.array(data, mask=numpy.zeros(data.shape, dtype=bool))
         self.data.data[:,4] *= 1000.0*self.meta.dt	# Convert width from samples to time in ms
         print("            -> Found %i pulses" % self.data.shape[0])
         
