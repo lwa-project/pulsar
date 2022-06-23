@@ -778,8 +778,8 @@ class SinglePulse_GUI(object):
                     self.oldMarkD = None
                     self.makeMark(*self.pulseClick)
                 else:
-                    self.ax2.lines.extend(self.oldMarkT)
-                    self.ax2.lines.extend(self.oldMarkD)
+                    self.ax2.plot(*self.oldMarkT, linestyle='-', marker='', color='red')
+                    self.ax2.plot(*self.oldMarkD, linestyle='-', marker='', color='red')
                     
             self.frame.figure2.tight_layout()
             self.frame.canvas2.draw()
@@ -836,26 +836,34 @@ class SinglePulse_GUI(object):
     def makeMark(self, clickTime, clickDM):
         if self.oldMarkT is not None:
             try:
-                del self.ax2.lines[-1]
-            except:
-                pass
+                self.ax2.lines[-1].remove()
+            except AttributeError:
+                try:
+                    del self.ax2.lines[-1]
+                except:
+                    pass
         if self.oldMarkD is not None:
             try:
-                del self.ax2.lines[-1]
-            except:
-                pass
-                
+                self.ax2.lines[-1].remove()
+            except AttributeError:
+                try:
+                    del self.ax2.lines[-1]
+                except:
+                    pass
+                    
         fLow, fHigh = self.meta.lofreq, self.meta.lofreq + self.meta.BW
         
         slope = -_D*(1.0/fLow**2 - 1.0/fHigh**2)
         
         dm = numpy.linspace(self.dmMin, self.dmMax, 2)
         t = clickTime + (dm - clickDM)*slope
-        self.oldMarkT = self.ax2.plot(t, dm, linestyle='-', marker='', color='red')
+        self.oldMarkT = [t, dm]
+        self.ax2.plot(*self.oldMarkT, linestyle='-', marker='', color='red')
         
         t = numpy.linspace(self.tMin-100, self.tMax+100, 2)
         dm = t*0 + clickDM
-        self.oldMarkD = self.ax2.plot(t, dm, linestyle='-', marker='', color='red')
+        self.oldMarkD = [t, dm]
+        self.ax2.plot(*self.oldMarkD, linestyle='-', marker='', color='red')
         
         self.pulseClick = (clickTime, clickDM)
         
