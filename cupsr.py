@@ -8,6 +8,23 @@ __all__ = ['PulsarEngineRaw', 'PhaseRotator',
            'OptimizeDataLevels8Bit', 'OptimizeDataLevels4Bit']
 
 
+_PROMOTE = cp.RawKernel(r"""
+extern "C"
+__global__ void promote(const char2 *input,
+                        int nstand,
+                        int nsamp,
+                        float2 *output) {
+  int s = blockIdx.x;
+  int t = blockIdx.y*512 + threadIdx.x;
+  if( t < nsamp ) {
+    char2 temp;
+    temp = *(input + s*nsamp + t);
+    *(output + s*nsamp + t) = make_float2(temp.x, temp.y);
+  }
+}
+""", 'promote')
+
+
 def PulsarEngineRaw(signals, LFFT=64, signalsF=None, asnumpy=False):
     """
     Perform a series of Fourier transforms on complex-valued data to get sub-
@@ -18,21 +35,40 @@ def PulsarEngineRaw(signals, LFFT=64, signalsF=None, asnumpy=False):
     
     Input keywords are:
      * LFFT: number of FFT channels to make (default=64)
-     * signalsF: ignored - existing array to write the result into
+     * signalsF: existing array to write the result into - ignored for
+       numpy.complex64 input data
      * asnumpy: Boolean of whether to return a numpy.ndarray or a cupy.ndarray
     
     Outputs:
      * sub-integration: 2-D numpy.complex64 (stands by channels by integrations)
        of FFT'd data
     """
-    
+
+    if signals.dtype == np.int8:
+        nstand, nsamp, _ = signals.shape
+        if not isinstance(signals, cp.ndarray):
+            signals = cp.asarray(signals)
+            
+        if signalsF is None:
+            signalsF = cp.empty(shape=(nstand, nsamp), dtype=np.complex64)
+        else:
+            if not isinstance(signalsF, cp.ndarray):
+                signalsF = cp.asarray(signalsF)
+            signalsF.shape = (nstand, nsamp)
+            
+        _PROMOTE((nstand,int(np.ceil(nsamp/512))),(min([512, nsamp]),),
+                 (signals, cp.int32(nstand), cp.int32(nsamp), signalsF))
+        signals = signalsF
+        
+    else:
+        if not isinstance(signals, cp.ndarray):
+            signals = cp.asarray(signals)
+             
     nstand, nsamp = signals.shape
     nchan = LFFT
     nwin = nsamp // nchan
     assert(nsamp % nchan == 0)
-    if not isinstance(signals, cp.ndarray):
-        signals = cp.asarray(signals)
-        
+    
     signals.shape = (nstand, nwin, nchan)
     signalsF = cp.fft.fft(signals, n=nchan, axis=2, norm='ortho')
     signalsF = cp.fft.fftshift(signalsF, axes=2)
@@ -135,14 +171,14 @@ def PhaseRotator(signals, freq1, freq2, delays, signalsF=None, asnumpy=False):
 _SKMASK = cp.RawKernel(r"""
 extern "C"
 __global__ void skmask(const float2 *input,
-                       double lower,
-                       double upper,
+                       float lower,
+                       float upper,
                        int nstand,
                        int nchan,
                        int nwin,
                        float *mask) {
   int s = blockIdx.x;
-  int c = blockIdx.y*512 + threadIdx.x;
+  int c = blockIdx.y*128 + threadIdx.x;
   if( c < nchan ) {
     int w;
     float2 temp;
@@ -156,14 +192,13 @@ __global__ void skmask(const float2 *input,
       tempV2 += tempV;
     }
     
-    tempV  = nwin*temp2V / (tempV2*tempV2) - 1.0;
-    tempV *= (nwin + 1.0)/(nwin - 1.0);
+    tempV = nwin*temp2V / (tempV2*tempV2);
     
+    temp2V = 1.0;
     if( tempV < lower || tempV > upper ) {
-        *(mask + s*nchan + c) = 0.0;
-    } else {
-        *(mask + s*nchan + c) = 1.0;
+        temp2V = 0.0;
     }
+    *(mask + s*nchan + c) = temp2V;
   }
 }
 """, 'skmask')
@@ -194,8 +229,11 @@ def ComputeSKMask(signals, lower, upper, asnumpy=True):
         
     mask = cp.empty((nstand,nchan), dtype=np.float32)
     
-    _SKMASK((nstand,int(np.ceil(nchan/512))), (min([512, nchan]),),
-            (signals, cp.double(lower), cp.double(upper),
+    lower = lower*(nwin-1)/(nwin+1.0) + 1.0
+    upper = upper*(nwin-1)/(nwin+1.0) + 1.0
+    
+    _SKMASK((nstand,int(np.ceil(nchan/128))), (min([128, nchan]),),
+            (signals, cp.float32(lower), cp.float32(upper),
              cp.int32(nstand), cp.int32(nchan), cp.int32(nwin),
              mask))
     
