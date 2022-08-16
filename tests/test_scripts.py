@@ -69,7 +69,8 @@ _SAFE_TO_IGNORE = ["Possible",
                    "Class 'int' has no 'from_bytes' member",
                    "Module 'astropy.units' has no 'hourangle' member",
                    "Module 'astropy.units' has no 'degree' member",
-                   "Unable to import 'cupy'"]
+                   "Unable to import 'cupy'",
+                   "Argument 'h5py._hl.base.Empty' does not match format"]
 
 
 def _get_context(filename, line, before=0, after=0):
