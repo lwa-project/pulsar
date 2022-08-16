@@ -71,23 +71,14 @@ void chirpFunction(long LFFT, double centralFreq, double sampleRate, double DM, 
 	double freqMHz;
 	double fMHz0, fMHz1;
 	
-	// Compute the frequencies in MHz and find the average frequency
-	if( LFFT % 2 == 0 ) {
-		fMHz0 = (centralFreq - sampleRate / (double) LFFT / 2.0) / 1e6;
-	} else {
-		fMHz0 = centralFreq / 1e6;
-	}
-// 	fMHz0 = 0.0;
-// 	for(i=0; i<LFFT; i++) {
-// 		fMHz0 += getFreq(i, LFFT, centralFreq, sampleRate) / 1e6;
-// 	}
-// 	fMHz0 /= (double) LFFT;
+	// Find the center of the band in MHz
+	fMHz0 = centralFreq / 1e6;
 	
 	// Compute the chirp
 	for(i=0; i<LFFT; i++) {
 		freqMHz = getFFTChannelFreq(i, LFFT, centralFreq, sampleRate) / 1e6;
 		fMHz1 = freqMHz - fMHz0;
-		*(chirp + i) = exp(-TPI*DCONST*1e6 * DM*fMHz1*fMHz1 / (fMHz0*fMHz0* freqMHz));
+		*(chirp + i) = exp(-TPI*DCONST*1e6 * DM*fMHz1*fMHz1 / (fMHz0*fMHz0 * freqMHz));
 	}
 }
 
@@ -227,11 +218,11 @@ PyObject *MultiChannelCD(PyObject *self, PyObject *args, PyObject *kwds) {
 			}
 			
 			inP = (Complex32 *) fftwf_malloc(N*sizeof(Complex32));
-			*(plansF + nChan*i/2 + j) = fftwf_plan_dft_1d(N,
+			*(plansF + i/2*nChan + j) = fftwf_plan_dft_1d(N,
 																										reinterpret_cast<fftwf_complex*>(inP),
 																										reinterpret_cast<fftwf_complex*>(inP),
 																										FFTW_FORWARD, FFTW_ESTIMATE);
-			*(plansB + nChan*i/2 + j) = fftwf_plan_dft_1d(N,
+			*(plansB + i/2*nChan + j) = fftwf_plan_dft_1d(N,
 																										reinterpret_cast<fftwf_complex*>(inP),
 																										reinterpret_cast<fftwf_complex*>(inP),
 																										FFTW_BACKWARD, FFTW_ESTIMATE);
@@ -262,8 +253,8 @@ PyObject *MultiChannelCD(PyObject *self, PyObject *args, PyObject *kwds) {
 		for(j=0; j<nChan; j++) {
 			for(i=0; i<nStand; i+=2) {
 				// Section start offset
-				secStartX = nFFT*nChan*i     + nFFT*j;
-				secStartY = nFFT*nChan*(i+1) + nFFT*j;
+				secStartX = i*nChan*nFFT     + j*nFFT;
+				secStartY = (i+1)*nChan*nFFT + j*nFFT;
 				
 				// Get the correct center frequency to use
 				if( i/2 == 0 ) {
@@ -288,7 +279,7 @@ PyObject *MultiChannelCD(PyObject *self, PyObject *args, PyObject *kwds) {
 				
 				// Loop over the sets
 				for(l=0; l<2*nSets+1; l++) {
-					start = l*N/2 - N/4;
+					start = N/2*l - N/4;
 					stop = start + N;
 					
 					// Load in the data
@@ -330,10 +321,10 @@ PyObject *MultiChannelCD(PyObject *self, PyObject *args, PyObject *kwds) {
 					}
 					
 					// Forward FFT
-					fftwf_execute_dft(*(plansF + nChan*i/2 + j),
+					fftwf_execute_dft(*(plansF + i/2*nChan + j),
 														reinterpret_cast<fftwf_complex*>(inX),
 														reinterpret_cast<fftwf_complex*>(inX));
-					fftwf_execute_dft(*(plansF + nChan*i/2 + j),
+					fftwf_execute_dft(*(plansF + i/2*nChan + j),
 													  reinterpret_cast<fftwf_complex*>(inY),
 														reinterpret_cast<fftwf_complex*>(inY));
 					
@@ -344,15 +335,15 @@ PyObject *MultiChannelCD(PyObject *self, PyObject *args, PyObject *kwds) {
 					}
 					
 					// Backward FFT
-					fftwf_execute_dft(*(plansB + nChan*i/2 + j),
+					fftwf_execute_dft(*(plansB + i/2*nChan + j),
 					                  reinterpret_cast<fftwf_complex*>(inX),
 														reinterpret_cast<fftwf_complex*>(inX));
-					fftwf_execute_dft(*(plansB + nChan*i/2 + j),
+					fftwf_execute_dft(*(plansB + i/2*nChan + j),
 													  reinterpret_cast<fftwf_complex*>(inY),
 														reinterpret_cast<fftwf_complex*>(inY));
 					
 					// Save
-					start = l*N/2;
+					start = N/2*l;
 					stop = start + N/2;
 					if( stop > nFFT ) {
 						stop = nFFT;
@@ -380,8 +371,8 @@ PyObject *MultiChannelCD(PyObject *self, PyObject *args, PyObject *kwds) {
 	// Cleanup
 	for(j=0; j<nChan; j++) {
 		for(i=0; i<nStand; i+=2) {
-			fftwf_destroy_plan(*(plansF + nChan*i/2 + j));
-			fftwf_destroy_plan(*(plansB + nChan*i/2 + j));
+			fftwf_destroy_plan(*(plansF + i/2*nChan + j));
+			fftwf_destroy_plan(*(plansB + i/2*nChan + j));
 		}
 	}
 	free(plansF);

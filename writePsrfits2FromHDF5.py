@@ -352,6 +352,7 @@ def main(args):
                 
             try:
                 if nTime > oTime + 1.001*tInt:
+                    # pylint: disable-next=bad-string-format-type
                     print('Warning: Time tag error in subint. %i; %.3f > %.3f + %.3f' % (siCount, nTime, oTime, tInt))
             except NameError:
                 pass

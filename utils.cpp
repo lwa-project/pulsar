@@ -25,6 +25,72 @@
   Core binding function - based off the corresponding bifrost function
 */
 
+#if defined __APPLE__ && __APPLE__
+
+// Based on information from:
+//   http://www.hybridkernel.com/2015/01/18/binding_threads_to_cores_osx.html
+
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <mach/mach_init.h>
+#include <mach/thread_policy.h>
+#include <mach/thread_act.h>
+
+typedef struct cpu_set {
+  uint32_t    count;
+} cpu_set_t;
+
+static inline void
+CPU_ZERO(cpu_set_t *cs) { cs->count = 0; }
+
+static inline void
+CPU_SET(int num, cpu_set_t *cs) { cs->count |= (1 << num); }
+
+static inline int
+CPU_ISSET(int num, cpu_set_t *cs) { return (cs->count & (1 << num)); }
+
+static inline int
+CPU_COUNT(cpu_set_t *cs) {
+	int count = 0;
+	for(int i=0; i<8*sizeof(cpu_set_t); i++) {
+		count += CPU_ISSET(i, cs) ? 1 : 0;
+	}
+	return count;
+}
+
+int pthread_getaffinity_np(pthread_t thread,
+	                         size_t    cpu_size,
+                           cpu_set_t *cpu_set) {
+  thread_port_t mach_thread;
+	mach_msg_type_number_t count = THREAD_AFFINITY_POLICY_COUNT;
+	boolean_t get_default = false;
+	
+	thread_affinity_policy_data_t policy;
+	mach_thread = pthread_mach_thread_np(thread);
+	thread_policy_get(mach_thread, THREAD_AFFINITY_POLICY,
+                    (thread_policy_t)&policy, &count,
+									  &get_default);
+	cpu_set->count |= (1<<(policy.affinity_tag));
+	return 0;
+}
+
+int pthread_setaffinity_np(pthread_t thread,
+	                         size_t    cpu_size,
+                           cpu_set_t *cpu_set) {
+  thread_port_t mach_thread;
+  int core = 0;
+
+  for (core=0; core<8*cpu_size; core++) {
+    if (CPU_ISSET(core, cpu_set)) break;
+  }
+  thread_affinity_policy_data_t policy = { core };
+  mach_thread = pthread_mach_thread_np(thread);
+  thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY,
+                    (thread_policy_t)&policy, 1);
+  return 0;
+}
+
+#endif
 
 /*
  setCore - Internal function to bind a thread to a particular core, or unbind
@@ -32,7 +98,7 @@
 */         
 
 int setCore(int core) {
-#if defined __linux__ && __linux__
+#if (defined __linux__ && __linux__) || (defined __APPLE__ && __APPLE__)
 	int ncore;
 	cpu_set_t cpuset;
 	ncore = sysconf(_SC_NPROCESSORS_ONLN);
@@ -64,7 +130,7 @@ int setCore(int core) {
 */
 
 int getCore(int* core) {
-#if defined __linux__ && __linux__
+#if (defined __linux__ && __linux__) || (defined __APPLE__ && __APPLE__)
 	int ret, c, ncore;
 	cpu_set_t cpuset;
 	ncore = sysconf(_SC_NPROCESSORS_ONLN);
@@ -95,7 +161,7 @@ int getCore(int* core) {
 */
 
 int getCoreCount(void) {
-#if defined __linux__ && __linux__
+#if (defined __linux__ && __linux__) || (defined __APPLE__ && __APPLE__)
 	return sysconf(_SC_NPROCESSORS_ONLN);
 #else
 	return -101;
