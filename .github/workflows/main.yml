@@ -5,7 +5,21 @@ on:
   schedule:
     - cron:  '30 5 3 * *'
 jobs:
+  pre_build:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v3.4.1
+        with:
+          concurrent_skipping: 'same_content'
+          paths_ignore: '["README.md"]'
+          skip_after_successful_duplicate: 'true'
+          do_not_skip: '["pull_request", "workflow_dispatch", "schedule"]'
   build:
+    needs: pre_build
+    if: ${{ needs.pre_build.outputs.should_skip != 'true' }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -25,6 +39,7 @@ jobs:
               libcfitsio-dev \
               libfftw3-dev \
               libgdbm-dev \
+              libgtk-3-dev \
               libhdf5-dev \
               pkg-config \
               tcsh \
@@ -46,16 +61,9 @@ jobs:
         - uses: actions/checkout@v2
         - name: "Software Install - Python"
           run: |
-            pip install \
-              setuptools \
-              numpy \
-              matplotlib \
-              scipy \
-              h5py
-            pip install \
-              git+https://github.com/lwa-project/lsl.git
-            pip install \
-              pylint
+            pip install numpy
+            pip install -r requirements.txt
+            pip install pylint
         - name: Build
           run: make
         - name: "Build and Install psrfits_utils"
