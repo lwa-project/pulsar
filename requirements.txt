@@ -1,0 +1,9 @@
+setuptools
+numpy
+matplotlib
+scipy
+h5py
+lsl
+pytz
+wxpython == 4.1.1
+healpy < 1.14.0; python_version <= '2.7'
