@@ -62,7 +62,6 @@ jobs:
         - name: "Software Install - Python"
           run: |
             pip install numpy
-            pip install attrdict
             pip install -r requirements.txt
             pip install pylint
         - name: Build
