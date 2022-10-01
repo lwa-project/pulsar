@@ -35,6 +35,11 @@ from lsl.statistics import kurtosis
 from lsl.misc import parser as aph
 
 from _psr import *
+try:
+    from cupsr import *
+    useCUPSR = True
+except ImportError:
+    useCUPSR = False
 
 
 MAX_QUEUE_DEPTH = 3
@@ -173,6 +178,7 @@ def main(args):
     print("Offset: %.3f s (%i frames)" % (o, o*srate//4096*tunepol))
     print("---")
     print("Using FFTW Wisdom? %s" % useWisdom)
+    print("Using cupsr instead of _psr? %s" % useCUPSR)
     
     # Create the output PSRFITS file(s)
     pfu_out = []

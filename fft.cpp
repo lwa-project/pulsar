@@ -351,7 +351,7 @@ PyObject *PhaseRotator(PyObject *self, PyObject *args, PyObject *kwds) {
 		PyErr_Format(PyExc_RuntimeError, "Cannot cast input f1 array to 1-D double");
 		goto fail;
 	}
-	if( freq1 == NULL ) {
+	if( freq2 == NULL ) {
 		PyErr_Format(PyExc_RuntimeError, "Cannot cast input f2 array to 1-D double");
 		goto fail;
 	}
