@@ -6,7 +6,7 @@ Pulsar data reduction software (and versions) currently avaliable on the LWA Use
 http://tempo.sourceforge.net/
 ```
 git clone git://git.code.sf.net/p/tempo/tempo
-git checkout 6bab1083350eca24745eafed79a55156bdd1e7d5
+git checkout 61c8011b0477f005dd4f05ad037fae83c51eafb4
 ./prepare
 ./configure
 make
