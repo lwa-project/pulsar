@@ -17,34 +17,17 @@ sudo make install
 https://www.cv.nrao.edu/~sransom/presto/
 ```
 git clone https://github.com/scottransom/presto.git
-git checkout e90b8148f813c151f588f5f94b81b606964b03a8
+git checkout v4.0
 cd src
 make
-```
-with one small change to get around some segfaults in `prepdata`:
-```
-diff --git a/src/backend_common.c b/src/backend_common.c
-index d38c3ba..f9f173b 100644
---- a/src/backend_common.c
-+++ b/src/backend_common.c
-@@ -532,8 +532,8 @@ int read_psrdata(float *fdata, int numspect, struct spectra_info *s,
-             numsubints = numspect / s->spectra_per_subint;
-         if (obsmask->numchan)
-             mask = 1;
--        rawdata1 = gen_fvect(numsubints * s->spectra_per_subint * s->num_channels);
--        rawdata2 = gen_fvect(numsubints * s->spectra_per_subint * s->num_channels);
-+        rawdata1 = gen_fvect((long) numsubints * s->spectra_per_subint * s->num_channels);
-+        rawdata2 = gen_fvect((long) numsubints * s->spectra_per_subint * s->num_channels);
-         allocd = 1;
-         duration = numsubints * s->time_per_subint;
-         currentdata = rawdata1;
 ```
 
 ## psrfits_utils
 ```
 git clone https://github.com/lwa-project/psrfits_utils.git
+git checkout d26cac580477a2f2148e1a69fe70178747bf7ed1
 ./prepare
-./configure
+PYTHON_VERSION="3.8" ./configure
 make
 sudo make install
 ```
@@ -74,10 +57,10 @@ sudo cp psrcat /usr/local/bin/
 http://psrchive.sourceforge.net/
 ```
 git clone git://git.code.sf.net/p/psrchive/code
-git checkout ca12b4a279f3d4adcca223508116d9d270df8cc6
+git checkout a1709aab0948935dcaf5305c0aefd129cf954f8b
 unset TEMPO2
 ./bootstrap
-./configure --enable-shared --disable-tempo2 --with-psrcat=/usr/local/psrcat/
+PYTHON=/usr/bin/python3.8 ./configure --enable-shared --disable-tempo2 --with-psrcat=/usr/local/psrcat/
 make
 sudo make install
 ```
@@ -86,7 +69,7 @@ sudo make install
 http://dspsr.sourceforge.net/
 ```
 git clone git://git.code.sf.net/p/dspsr/code
-git checkout c277eba1e05ffa5e03310b13c2a0f0477758cf4f
+git checkout 6c762e6fc6bc2a1595000f34bcfc0ca0c43e9954
 unset TEMPO2
 sed -e 's/mwa/lwa mwa/g' -i ./config/backends.default 
 ./bootstrap
