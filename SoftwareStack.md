@@ -73,7 +73,7 @@ git checkout 6c762e6fc6bc2a1595000f34bcfc0ca0c43e9954
 unset TEMPO2
 sed -e 's/mwa/lwa mwa/g' -i ./config/backends.default 
 ./bootstrap
-./configure --enable-shared --with-cuda-dir=/usr/local/cuda --with-cuda-include-dir=/usr/local/cuda/include --with-cuda-lib-dir=/usr/local/cuda/lib64
+PYTHON=/usr/bin/python3.8 ./configure --enable-shared --with-cuda-dir=/usr/local/cuda --with-cuda-include-dir=/usr/local/cuda/include --with-cuda-lib-dir=/usr/local/cuda/lib64
 make
 sudo make install
 ```
