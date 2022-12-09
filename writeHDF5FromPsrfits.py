@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Given a PSRFITS file, create a HDF5 file in the standard LWA1 format.

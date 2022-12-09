@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Given an HDF5 file from drspec2hdf.py, create one of more PSRFITS file(s).

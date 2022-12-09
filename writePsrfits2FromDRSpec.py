@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Given a DR spectrometer file, create one of more PSRFITS file(s).

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Given a collection of single pulse files from PRESTO, plot them in an interactive way.
