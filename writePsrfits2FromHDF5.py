@@ -3,13 +3,6 @@
 """
 Given an HDF5 file from drspec2hdf.py, create one of more PSRFITS file(s).
 """
-
-# Python2 compatibility
-from __future__ import print_function, division
-try:
-    input = raw_input
-except NameError:
-    pass
     
 import os
 import sys
