@@ -4,6 +4,9 @@
 Given a DRX file, create two interleaved DRX (DRXI) files, one for each tuning
 """
 
+# Python2 compatibility
+from __future__ import print_function, division
+
 import os
 import sys
 import copy
