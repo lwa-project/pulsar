@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Given a collection of single pulse files from PRESTO, plot them in an interactive way.
@@ -27,8 +27,8 @@ from scipy.stats import scoreatpercentile as percentile, skew, kurtosis
 from scipy.signal import savgol_filter as savitzky_golay
 from astropy.io import fits as astrofits
 
-from infodata import infodata
-from residuals import read_residuals
+from presto.infodata import infodata
+from presto.residuals import read_residuals
 
 import lsl
 from lsl import astro

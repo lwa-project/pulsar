@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Given an HDF5 file from drspec2hdf.py, create one of more PSRFITS file(s).
@@ -56,6 +56,10 @@ def main(args):
         
     try:
         station = fh.attrs['StationName']
+        try:
+            station = station.decode()
+        except AttributeError:
+            pass
     except KeyError:
         station = 'lwa1'
         
@@ -64,7 +68,11 @@ def main(args):
         try:
             ## Load from the observation
             sourceName = obs1.attrs['TargetName']
-            
+            try:
+                sourceName = sourceName.decode()
+            except AttributeError:
+                pass
+                
             ## Validate
             assert(sourceName != '')
             
@@ -78,7 +86,7 @@ def main(args):
         try:
             ## Load from the observation
             ra = obs1.attrs['RA']
-            if obs1.attrs['RA_Units'] == 'degrees':
+            if obs1.attrs['RA_Units'] == b'degrees':
                 ra /= 15.0
             dec = obs1.attrs['Dec']
             decSign = '-' if dec < 0 else '+'
