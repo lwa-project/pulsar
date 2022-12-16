@@ -155,7 +155,7 @@ class RawDRXFrameBuffer(buffer.FrameBufferBase):
         fillFrame[4] = (beam & 7) | ((tune & 7) << 3) | ((pol & 1) << 7)
         
         # Zero the data for the fill packet
-        fillFrame[32:] = '\x00'*4096
+        fillFrame[32:] = [0,]*4096
         
         return fillFrame
 
