@@ -77,6 +77,11 @@ std::list<DRXFrame> DRXBuffer::get() {
   uint64_t timetag;
   while(   (_buffer.size() < 20) \
         && (_fh.read(reinterpret_cast<char*>(&frame), sizeof(frame)).good()) ) {
+      // Validate the sync word
+      if( frame.header.sync_word != 0x5CDEC0DE ) {
+        throw SyncError("Invalid sync word");
+      }
+      
       timetag = __bswap_64(frame.payload.timetag);
       
       // See if we have already dumped this timetag
@@ -87,8 +92,7 @@ std::list<DRXFrame> DRXBuffer::get() {
       // Add it to the buffer
       // If we have a new timetag, create an entry for it
       if( _buffer.count(timetag) == 0 ) {
-        std::map<uint32_t, DRXFrame> frame_set;
-        _buffer[timetag] = frame_set;
+        _buffer.emplace(timetag, std::forward<std::map<uint32_t, DRXFrame> >({}));
       }
       
       // Save the frame
@@ -97,7 +101,7 @@ std::list<DRXFrame> DRXBuffer::get() {
   
   std::list<DRXFrame> output;
   // Loop over ordered ID numbers
-  if( _buffer.size() > 0 ) {
+  if( !_buffer.empty() ) {
     _buff_it = std::begin(_buffer);
     
     // But first, check for any small gaps in the buffer by looking at the time
@@ -106,31 +110,34 @@ std::list<DRXFrame> DRXBuffer::get() {
       double missing = (_buff_it->first - _last_timetag - _timetag_skip) / _timetag_skip;
       
       // If it looks like we are missing something, fill the gap... up to a point
-      if( (missing > 0) && ((int) missing == missing) && (missing < 50) ) {
-        DRXFrame dummy_frame;
-        ::memcpy(&dummy_frame, &std::begin(_buff_it->second)->second, sizeof(dummy_frame));
-        ::memset(&(dummy_frame.payload.bytes), 0, 4096);
-        uint64_t dummy_timetag = _buff_it->first;
-        
-        for(int j=0; j<missing; j++) {
-          std::map<uint32_t, DRXFrame> frame_set;
-          _buffer[dummy_timetag + j*_timetag_skip] = frame_set;
+      if( missing > 0 ) {
+        if( ((int) missing == missing) && (missing < 50) ) {
+          DRXFrame dummy_frame;
+          ::memcpy(&dummy_frame, &std::begin(_buff_it->second)->second, sizeof(dummy_frame));
+          ::memset(&(dummy_frame.payload.bytes), 0, 4096);
+          uint64_t dummy_timetag = _buff_it->first;
           
-          for(_id_it=std::begin(_frame_ids); _id_it!=std::end(_frame_ids); _id_it++) {
-            dummy_frame.header.frame_count_word = *_id_it;
-            dummy_frame.payload.timetag = __bswap_64(dummy_timetag + j*_timetag_skip);
+          for(int j=1; j<missing; j++) {
+            _buffer.emplace(dummy_timetag + j*_timetag_skip, std::forward<std::map<uint32_t, DRXFrame> >({}));
             
-            _buffer[dummy_timetag + j*_timetag_skip][*_id_it] = dummy_frame;
+            for(const uint32_t& frame_id: _frame_ids) {
+              dummy_frame.header.frame_count_word = frame_id;
+              dummy_frame.payload.timetag = __bswap_64(dummy_timetag + j*_timetag_skip);
+              
+              _buffer[dummy_timetag + j*_timetag_skip][frame_id] = dummy_frame;
+            }
           }
+          
+          _buff_it = std::begin(_buffer);
+        } else {
+          throw std::runtime_error("Invalid timetag skip encountered");
         }
-        
-      _buff_it = std::begin(_buffer);
       }
     }
     
     _last_timetag = _buff_it->first;
-    for(_id_it=std::begin(_frame_ids); _id_it!=std::end(_frame_ids); _id_it++) {
-      _set_it = _buff_it->second.find(*_id_it);
+    for(const uint32_t& frame_id: _frame_ids) {
+      auto _set_it = _buff_it->second.find(frame_id);
       
       if( _set_it != std::end(_buff_it->second) ) {
         // Great, we have the frame
@@ -138,7 +145,7 @@ std::list<DRXFrame> DRXBuffer::get() {
       } else {
         // Boo, we need to create a fake frame
         ::memcpy(&frame, &std::begin(_buff_it->second)->second, sizeof(frame));
-        frame.header.frame_count_word = *_id_it;
+        frame.header.frame_count_word = frame_id;
         ::memset(&(frame.payload.bytes), 0, 4096);
       }
       output.push_back(frame);
@@ -150,4 +157,62 @@ std::list<DRXFrame> DRXBuffer::get() {
   }
   
   return output;  
+}
+
+DRXReader::DRXReader(std::string filename): DRXBuffer(filename) {
+  for(uint16_t i=0; i<256; i++) {
+    for(uint16_t j=0; j<2; j++) {
+      int16_t t = (i >> 4*(1-j)) & 15;
+      _lut[i][j] = t;
+      _lut[i][j] -= ((t&8)<<1);
+    }
+  }
+}
+
+int8_t* DRXReader::read(double t_read, LWATime *tStart, uint64_t *samples) {
+  uint32_t nframes = round((t_read * this->sample_rate()) / 4096);
+  nframes = std::max(nframes, 1u);
+  
+  int8_t *buffer = (int8_t*) calloc(sizeof(int8_t)*2, 4*nframes*4096);
+  
+  uint32_t j;
+  for(j=0; j<nframes; j++) {
+    std::list<DRXFrame> frames = this->get();
+    if( frames.size() == 0 ) {
+      break;
+    }
+    
+    if( j == 0 ) {
+      auto first_frame = std::begin(frames);
+      *tStart = timetag_to_lwatime(__bswap_64(first_frame->payload.timetag) \
+                                  - __bswap_16(first_frame->header.time_offset));
+    }
+    
+    for(const DRXFrame& frame: frames) {
+      uint8_t tune = DRX_GET_TUNE(frame);
+      uint8_t pol = DRX_GET_POLN(frame);
+      
+      uint64_t i = 2*(tune - 1) + pol;
+      const int8_t *fp;
+      for(uint32_t k=0; k<4096; k++) {
+        fp = _lut[ frame.payload.bytes[k] ];
+        *(buffer + i*nframes*4096*2 + j*4096*2 + k*2 + 0) = fp[0];
+        *(buffer + i*nframes*4096*2 + j*4096*2 + k*2 + 1) = fp[1];
+      }
+    }
+  }
+  
+  if( (j < nframes) && (j > 0) ) {
+    int8_t *new_buffer = (int8_t*) malloc(sizeof(int8_t)*2 * 4*j*4096);
+    for(uint64_t i=0; i<4; i++) {
+      ::memcpy(new_buffer + i*j*4096*2,
+               buffer + i*nframes*4096*2, 
+               sizeof(int8_t)*2 * j*4096);
+    }
+    ::free(buffer);
+    buffer = new_buffer;
+  }
+  *samples = j*4096;
+  
+  return buffer;
 }

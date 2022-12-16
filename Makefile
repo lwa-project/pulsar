@@ -14,13 +14,13 @@ _helper.so: helper.cpp setup.py
 	rm -rf build
 
 drx.o: drx.cpp drx.hpp lwa.hpp
-	g++ -c -o drx.o drx.cpp
+	g++ -c -std=c++14 -o drx.o drx.cpp
 
 drxi.o: drxi.cpp drxi.hpp drx.hpp
-	g++ -c -o drxi.o drxi.cpp
+	g++ -c -std=c++14 -o drxi.o drxi.cpp
 
 drx2drxi.o: drx2drxi.cpp
-	g++ -c -o drx2drxi.o drx2drxi.cpp
+	g++ -c -std=c++14 -o drx2drxi.o drx2drxi.cpp
 
 drx2drxi: drx2drxi.o drx.o drxi.o
 	g++ -o drx2drxi drx2drxi.o drx.o drxi.o

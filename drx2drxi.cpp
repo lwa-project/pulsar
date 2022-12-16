@@ -34,9 +34,6 @@ int main(int argc, char** argv) {
   outname2 = outname1+"_b"+std::to_string(beam)+"t2.drxi";
   outname1 = outname1+"_b"+std::to_string(beam)+"t1.drxi";
   
-  //outname1 = "out_b"+std::to_string(beam)+"t1.drxi";
-  //outname2 = "out_b"+std::to_string(beam)+"t2.drxi";
-  
   std::cout << "Names are: " << outname1 << " and " << outname2 << std::endl;
   
   std::ofstream oh1, oh2;
@@ -51,7 +48,6 @@ int main(int argc, char** argv) {
   max_s = buffer->nframes() / buffer->beampols();
   std::list<DRXFrame> frames;
   std::list<DRXFrame>::iterator frame_it;
-  uint8_t drxi_bytes[2*4096];
   
   frames = buffer->get();
   while( frames.size() > 0 ) {

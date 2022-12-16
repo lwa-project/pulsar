@@ -5,8 +5,57 @@
 #include <cmath>
 #include <ctime>
 #include <string>
+#include <stdexcept>
+
+#if defined(__linux__)
+/* Linux */
+#include <byteswap.h>
+#elif defined(__APPLE__) && defined(__MACH__)
+/* OSX */
+#include <libkern/OSByteOrder.h>
+#define __bswap_16 OSSwapInt16
+#define __bswap_32 OSSwapInt32
+#define __bswap_64 OSSwapInt64
+#endif
+
 
 #define LWA_FS 196000000
+
+
+/* 
+ Exceptions
+*/
+
+class SyncError: public std::runtime_error {
+public:
+  SyncError(const std::string& what = ""): std::runtime_error(what) {}
+};
+
+class EOFError: public std::runtime_error {
+public:
+  EOFError(const std::string& what = ""): std::runtime_error(what) {}
+};
+
+
+/*
+ Endianess swaps
+*/
+
+constexpr bool is_system_little_endian() {
+  const int value { 0x01 };
+  const void * address = static_cast<const void *>(&value);
+  const unsigned char * least_significant_address = static_cast<const unsigned char *>(address);
+  return (*least_significant_address == 0x01);
+}
+
+//uint16_t lwa_bswap_16(uint16_t value) {
+//  if( is_system_little_endian() ) {
+//    return __bswap_16(value);
+//  } else {
+//    return value;
+//  }
+//}
+
 
 /*
  Time conversion functions

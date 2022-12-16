@@ -74,9 +74,7 @@ private:
   uint64_t _last_timetag;
   
   std::set<uint32_t> _frame_ids;
-  std::set<uint32_t>::iterator _id_it;
   
-  std::map<uint32_t, DRXFrame>::iterator _set_it;
   std::map<uint64_t, std::map<uint32_t, DRXFrame> > _buffer;
   std::map<uint64_t, std::map<uint32_t, DRXFrame> >::iterator _buff_it;
   
@@ -86,7 +84,7 @@ public:
     _fh.close();
   }
   inline int beam() { 
-    _id_it = std::begin(_frame_ids);
+    auto _id_it = std::begin(_frame_ids);
     return (*_id_it & 0x07);
   }
   inline int beampols()     { return _frame_ids.size(); }
@@ -100,6 +98,15 @@ public:
     _last_timetag = 0;
     _buffer.clear();
   }
+};
+
+class DRXReader: public DRXBuffer {
+private:
+  int8_t      _lut[256][2];
+  
+public:
+  DRXReader(std::string filename);
+  int8_t* read(double t_read, LWATime* tStart, uint64_t* samples);
 };
 
 #endif // __INCLUDE_DRX_HPP_
