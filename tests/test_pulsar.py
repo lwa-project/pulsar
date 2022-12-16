@@ -40,7 +40,7 @@ class pulsar_tests(unittest.TestCase):
         # Raw data
         if not os.path.exists(_FILENAME):
             subprocess.check_call(['curl', _URL, 
-                                   '--range', '0-%i' % (int(_SIZE_MB)*1024*1024), 
+                                   '--range', '4128-%i' % (int(_SIZE_MB)*1024*1024), 
                                    '-o', _FILENAME, '--create-dirs'])
             
     def tearDown(self):
