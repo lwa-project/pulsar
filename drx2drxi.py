@@ -264,7 +264,7 @@ def main(args):
                             m = ttLast + ttSkip*(m+1) + tNomX   # T_NOM has been subtracted from ttLast
                             baseframe = copy.deepcopy(rFrames[0])
                             baseframe[14:24] = struct.pack('>HQ', struct.unpack('>HQ', baseframe[14:24])[0], m)
-                            baseframe[32:] = '\x00'*4096
+                            baseframe[32:] = [0,]*4096
                             buffer.append(baseframe)
             except NameError:
                 pass
