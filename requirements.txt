@@ -5,6 +5,6 @@ scipy
 h5py
 lsl
 pytz
-wxpython <= 4.1.1
+wxpython
 importlib-metadata; python_version < '3.8'
 healpy < 1.14.0; python_version <= '2.7'
