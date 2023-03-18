@@ -155,7 +155,7 @@ PyObject *PulsarEngineRaw(PyObject *self, PyObject *args, PyObject *kwds) {
 			goto fail;
 		}
 	} else {
-		dataF = (PyArrayObject*) PyArray_ZEROS(3, dims, NPY_COMPLEX64, 0);
+		dataF = (PyArrayObject*) PyArray_EMPTY(3, dims, NPY_COMPLEX64, 0);
 		if(dataF == NULL) {
 			PyErr_Format(PyExc_MemoryError, "Cannot create output array");
 			goto fail;
@@ -271,7 +271,7 @@ PyObject *PulsarEngineRawWindow(PyObject *self, PyObject *args, PyObject *kwds) 
 			return NULL;
 		}
 	} else {
-		dataF = (PyArrayObject*) PyArray_ZEROS(3, dims, NPY_COMPLEX64, 0);
+		dataF = (PyArrayObject*) PyArray_EMPTY(3, dims, NPY_COMPLEX64, 0);
 		if(dataF == NULL) {
 			PyErr_Format(PyExc_MemoryError, "Cannot create output array");
 			Py_XDECREF(data);
