@@ -161,7 +161,7 @@ PyObject *CombineToIntensity(PyObject *self, PyObject *args, PyObject *kwds) {
 			goto fail;
 		}
 	} else {
-		dataF = (PyArrayObject*) PyArray_ZEROS(2, dims, NPY_FLOAT32, 0);
+		dataF = (PyArrayObject*) PyArray_EMPTY(2, dims, NPY_FLOAT32, 0);
 		if(dataF == NULL) {
 			PyErr_Format(PyExc_MemoryError, "Cannot create output array");
 			goto fail;
@@ -169,7 +169,7 @@ PyObject *CombineToIntensity(PyObject *self, PyObject *args, PyObject *kwds) {
 	}
 	
 	reduce_engine<Intensity>(nStand, nChan, nFFT,
-		                       (Complex32*) PyArray_DATA(data),
+		                       (Complex32 const*) PyArray_DATA(data),
 													 (float*) PyArray_DATA(dataF));
 	
 	signalsF = Py_BuildValue("O", PyArray_Return(dataF));
@@ -242,7 +242,7 @@ PyObject *CombineToLinear(PyObject *self, PyObject *args, PyObject *kwds) {
 			goto fail;
 		}
 	} else {
-		dataF = (PyArrayObject*) PyArray_ZEROS(2, dims, NPY_FLOAT32, 0);
+		dataF = (PyArrayObject*) PyArray_EMPTY(2, dims, NPY_FLOAT32, 0);
 		if(dataF == NULL) {
 			PyErr_Format(PyExc_MemoryError, "Cannot create output array");
 			goto fail;
@@ -250,7 +250,7 @@ PyObject *CombineToLinear(PyObject *self, PyObject *args, PyObject *kwds) {
 	}
 	
 	reduce_engine<Linear>(nStand, nChan, nFFT,
-		                    (Complex32*) PyArray_DATA(data),
+		                    (Complex32 const*) PyArray_DATA(data),
 												(float*) PyArray_DATA(dataF));
 	
 	signalsF = Py_BuildValue("O", PyArray_Return(dataF));
@@ -323,7 +323,7 @@ PyObject *CombineToCircular(PyObject *self, PyObject *args, PyObject *kwds) {
 			goto fail;
 		}
 	} else {
-		dataF = (PyArrayObject*) PyArray_ZEROS(2, dims, NPY_FLOAT32, 0);
+		dataF = (PyArrayObject*) PyArray_EMPTY(2, dims, NPY_FLOAT32, 0);
 		if(dataF == NULL) {
 			PyErr_Format(PyExc_MemoryError, "Cannot create output array");
 			goto fail;
@@ -331,7 +331,7 @@ PyObject *CombineToCircular(PyObject *self, PyObject *args, PyObject *kwds) {
 	}
 	
 	reduce_engine<Circular>(nStand, nChan, nFFT,
-		                      (Complex32*) PyArray_DATA(data),
+		                      (Complex32 const*) PyArray_DATA(data),
 													(float*) PyArray_DATA(dataF));
 	
 	signalsF = Py_BuildValue("O", PyArray_Return(dataF));
@@ -404,7 +404,7 @@ PyObject *CombineToStokes(PyObject *self, PyObject *args, PyObject *kwds) {
 			goto fail;
 		}
 	} else {
-		dataF = (PyArrayObject*) PyArray_ZEROS(2, dims, NPY_FLOAT32, 0);
+		dataF = (PyArrayObject*) PyArray_EMPTY(2, dims, NPY_FLOAT32, 0);
 		if(dataF == NULL) {
 			PyErr_Format(PyExc_MemoryError, "Cannot create output array");
 			goto fail;
@@ -412,7 +412,7 @@ PyObject *CombineToStokes(PyObject *self, PyObject *args, PyObject *kwds) {
 	}
 	
 	reduce_engine<Stokes>(nStand, nChan, nFFT,
-		                    (Complex32*) PyArray_DATA(data),
+		                    (Complex32 const*) PyArray_DATA(data),
 											  (float*) PyArray_DATA(dataF));
 	
 	signalsF = Py_BuildValue("O", PyArray_Return(dataF));

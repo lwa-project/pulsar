@@ -164,7 +164,7 @@ PyObject *PulsarEngineRaw(PyObject *self, PyObject *args, PyObject *kwds) {
 	
 	#define LAUNCH_PULSAR_ENGINE(IterType) \
         pulsar_engine<IterType>(nStand, nSamps, nFFT, nChan, \
-                                (IterType*) PyArray_DATA(data), \
+                                (IterType const*) PyArray_DATA(data), \
 																NULL, \
                                 (Complex32*) PyArray_DATA(dataF))
     
@@ -281,8 +281,8 @@ PyObject *PulsarEngineRawWindow(PyObject *self, PyObject *args, PyObject *kwds) 
 	
 	#define LAUNCH_PULSAR_ENGINE(IterType) \
         pulsar_engine<IterType>(nStand, nSamps, nFFT, nChan, \
-                                (IterType*) PyArray_DATA(data), \
-																(double*) PyArray_DATA(win), \
+                                (IterType const*) PyArray_DATA(data), \
+																(double const*) PyArray_DATA(win), \
                                 (Complex32*) PyArray_DATA(dataF))
     
     switch( PyArray_TYPE(data) ){
@@ -415,11 +415,12 @@ PyObject *PhaseRotator(PyObject *self, PyObject *args, PyObject *kwds) {
 	// Go!
 	long secStart;
 	double tempF;
-	Complex32 *a, *d;
-	double *b, *c;
-	a = (Complex32 *) PyArray_DATA(data);
-	b = (double *) PyArray_DATA(freq1);
-	c = (double *) PyArray_DATA(freq2);
+	Complex32 const *a;
+	Complex32 *d;
+	double const *b, *c;
+	a = (Complex32 const*) PyArray_DATA(data);
+	b = (double const*) PyArray_DATA(freq1);
+	c = (double const*) PyArray_DATA(freq2);
 	d = (Complex32 *) PyArray_DATA(dataF);
 	
 	#ifdef _OPENMP
