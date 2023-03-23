@@ -67,6 +67,7 @@ jobs:
         - name: "Software Install - Python"
           run: |
             pip install numpy
+            pip install attrdict "importlib-metadata; python_version < '3.8'" "healpy < 1.14.0; python_version <= '2.7'"
             pip install -r requirements.txt
             pip install pylint
         - name: Build
