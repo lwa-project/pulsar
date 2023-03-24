@@ -5,4 +5,4 @@ scipy
 h5py
 lsl
 pytz
-wxpython
+wxpython <= 4.2.0
