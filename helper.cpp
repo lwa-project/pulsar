@@ -1,4 +1,4 @@
-PyUnicode_#include "Python.h"
+#include "Python.h"
 #include <cmath>
 
 #ifdef _OPENMP
