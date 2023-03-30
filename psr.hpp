@@ -1,7 +1,6 @@
-#ifndef __PSR_H
-#define __PSR_H
+#pragma once
 
-#include <complex.h>
+#include <complex>
 
 /*
  Complex types
@@ -115,5 +114,3 @@ extern PyObject *OptimizeDataLevels8Bit(PyObject*, PyObject*, PyObject*);
 extern char OptimizeDataLevels8Bit_doc[];
 extern PyObject *OptimizeDataLevels4Bit(PyObject*, PyObject*, PyObject*);
 extern char OptimizeDataLevels4Bit_doc[];
-
-#endif	// __PSR_H

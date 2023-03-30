@@ -18,7 +18,7 @@
 #include "numpy/arrayobject.h"
 #include "numpy/npy_math.h"
 
-#include "psr.h"
+#include "psr.hpp"
 
 
 /*
