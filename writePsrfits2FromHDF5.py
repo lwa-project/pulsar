@@ -4,13 +4,6 @@
 Given an HDF5 file from drspec2hdf.py, create one of more PSRFITS file(s).
 """
 
-# Python2 compatibility
-from __future__ import print_function, division
-try:
-    input = raw_input
-except NameError:
-    pass
-    
 import os
 import sys
 import h5py
@@ -56,10 +49,7 @@ def main(args):
         
     try:
         station = fh.attrs['StationName']
-        try:
-            station = station.decode()
-        except AttributeError:
-            pass
+        station = station.decode()
     except KeyError:
         station = 'lwa1'
         
@@ -68,11 +58,8 @@ def main(args):
         try:
             ## Load from the observation
             sourceName = obs1.attrs['TargetName']
-            try:
-                sourceName = sourceName.decode()
-            except AttributeError:
-                pass
-                
+            sourceName = sourceName.decode()
+            
             ## Validate
             assert(sourceName != '')
             

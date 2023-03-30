@@ -11,7 +11,7 @@
 	
 	// OpenMP scheduling method
 	#ifndef OMP_SCHEDULER
-	#define OMP_SCHEDULER dynamic
+	#define OMP_SCHEDULER guided, 16
 	#endif
 #endif
 
@@ -79,48 +79,51 @@ See the inidividual functions for more details.");
   Module Setup - Initialization
 */
 
-MOD_INIT(_psr) {
+PyMODINIT_FUNC PyInit__psr(void) {
 	char filename[256];
 	PyObject *m, *all, *pModule, *pDataPath;
 
 	// Module definitions and functions
-	MOD_DEF(m, "_psr", SpecMethods, spec_doc);
+	static struct PyModuleDef moduledef = {
+		 PyModuleDef_HEAD_INIT, "_psr", spec_doc, -1, SpecMethods
+	};
+	m  = PyModule_Create(&moduledef);
 	if( m == NULL ) {
-        return MOD_ERROR_VAL;
+        return NULL;
     }
 	import_array();
 	
 	// Version information
-	PyModule_AddObject(m, "__version__", PyString_FromString("0.6"));
+	PyModule_AddObject(m, "__version__", PyUnicode_FromString("0.6"));
 	
 	// Function listings
 	all = PyList_New(0);
-	PyList_Append(all, PyString_FromString("BindToCore"));
-	PyList_Append(all, PyString_FromString("BindOpenMPToCores"));
-	PyList_Append(all, PyString_FromString("PulsarEngineRaw"));
-	PyList_Append(all, PyString_FromString("PulsarEngineRawWindow"));
-	PyList_Append(all, PyString_FromString("PhaseRotator"));
-	PyList_Append(all, PyString_FromString("ComputeSKMask"));
-	PyList_Append(all, PyString_FromString("ComputePseudoSKMask"));
-	PyList_Append(all, PyString_FromString("MultiChannelCD"));
-	PyList_Append(all, PyString_FromString("CombineToIntensity"));
-	PyList_Append(all, PyString_FromString("CombineToLinear"));
-	PyList_Append(all, PyString_FromString("CombineToCircular"));
-	PyList_Append(all, PyString_FromString("CombineToStokes"));
-	PyList_Append(all, PyString_FromString("OptimizeDataLevels8Bit"));
-	PyList_Append(all, PyString_FromString("OptimizeDataLevels4Bit"));
-	PyList_Append(all, PyString_FromString("useWisdom"));
+	PyList_Append(all, PyUnicode_FromString("BindToCore"));
+	PyList_Append(all, PyUnicode_FromString("BindOpenMPToCores"));
+	PyList_Append(all, PyUnicode_FromString("PulsarEngineRaw"));
+	PyList_Append(all, PyUnicode_FromString("PulsarEngineRawWindow"));
+	PyList_Append(all, PyUnicode_FromString("PhaseRotator"));
+	PyList_Append(all, PyUnicode_FromString("ComputeSKMask"));
+	PyList_Append(all, PyUnicode_FromString("ComputePseudoSKMask"));
+	PyList_Append(all, PyUnicode_FromString("MultiChannelCD"));
+	PyList_Append(all, PyUnicode_FromString("CombineToIntensity"));
+	PyList_Append(all, PyUnicode_FromString("CombineToLinear"));
+	PyList_Append(all, PyUnicode_FromString("CombineToCircular"));
+	PyList_Append(all, PyUnicode_FromString("CombineToStokes"));
+	PyList_Append(all, PyUnicode_FromString("OptimizeDataLevels8Bit"));
+	PyList_Append(all, PyUnicode_FromString("OptimizeDataLevels4Bit"));
+	PyList_Append(all, PyUnicode_FromString("useWisdom"));
 	PyModule_AddObject(m, "__all__", all);
 	
 	// LSL FFTW Wisdom
 	pModule = PyImport_ImportModule("lsl.common.paths");
 	if( pModule != NULL ) {
 		pDataPath = PyObject_GetAttrString(pModule, "DATA");
-		sprintf(filename, "%s/fftw_wisdom.txt", PyString_AsString(pDataPath));
+		sprintf(filename, "%s/fftw_wisdom.txt", PyUnicode_AsString(pDataPath));
 		read_wisdom(filename, m);
 	} else {
 		PyErr_Warn(PyExc_RuntimeWarning, "Cannot load the LSL FFTWF wisdom");
 	}
 	
-	return MOD_SUCCESS_VAL(m);
+	return m;
 }

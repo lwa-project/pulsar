@@ -3,8 +3,6 @@
 
 #include <complex.h>
 
-#include "py3_compat.h"
-
 /*
  Complex types
 */
@@ -29,6 +27,19 @@ typedef std::complex<double> Complex64;
 /* 
  Support Functions
 */
+
+inline char* PyUnicode_AsString(PyObject *ob) {
+    PyObject *enc;
+    char *cstr;
+    enc = PyUnicode_AsEncodedString(ob, "utf-8", "Error");
+    if( enc == NULL ) {
+        PyErr_Format(PyExc_ValueError, "Cannot encode string");
+        return NULL;
+    }
+    cstr = PyBytes_AsString(enc);
+    Py_XDECREF(enc);
+    return cstr;
+}
 
 // fft.c
 void read_wisdom(char*, PyObject*);

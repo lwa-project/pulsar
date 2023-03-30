@@ -4,9 +4,6 @@
 Given a collection of single pulse files from PRESTO, plot them in an interactive way.
 """
 
-# Python2 compatibility
-from __future__ import print_function, division
-
 import os
 import sys
 import glob

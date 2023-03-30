@@ -4,13 +4,6 @@
 Given a PSRFITS file, create a HDF5 file in the standard LWA1 format.
 """
 
-# Python2 compatibility
-from __future__ import print_function, division
-try:
-    input = raw_input
-except NameError:
-    pass
-    
 import os
 import re
 import sys
