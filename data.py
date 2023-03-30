@@ -2,14 +2,9 @@
 Stub module for downloading the latest data.py from https://github.com/lwa-project/commissioning
 """
 
-from __future__ import print_function
-
 import os
 import time
-try:
-    from urllib import request as urlrequest
-except ImportError:
-    import urllib2 as urlrequest
+from urllib import request as urlrequest
 
 
 # URL to download
