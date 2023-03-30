@@ -259,7 +259,7 @@ PyObject *BindOpenMPToCores(PyObject *self, PyObject *args, PyObject *kwds) {
 		for(t=0; t<nthread; ++t) {
 			tid = omp_get_thread_num();
 			core = PyList_GetItem(cores, tid);
-			c = (int) PyInt_AsLong(core);
+			c = (int) PyLong_AsLong(core);
 			ret |= setCore(c);
 		}
 	#else
