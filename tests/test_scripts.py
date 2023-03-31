@@ -94,7 +94,7 @@ def _test_generator(script):
         pylint_output = StringIO()
         reporter = TextReporter(pylint_output)
         pylint_args = [script, "-E", "--extension-pkg-whitelist=numpy,ephem,lsl", "--init-hook='import sys; sys.path=[%s]; sys.path.insert(0, \"%s\")'" % (",".join(['"%s"' % p for p in sys.path]), os.path.dirname(MODULE_BUILD))]
-        Run(pylint_args, reporter=reporter)
+        Run(pylint_args, reporter=reporter, do_exit=False)
         out = pylint_output.getvalue()
         out_lines = out.split('\n')
         
