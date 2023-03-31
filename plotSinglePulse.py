@@ -143,8 +143,8 @@ def getBarycentricCorrectionFunction(fitsname):
     topoMJD = mjd + numpy.arange(0, tFile+40.01, 20, dtype=numpy.float64)/86400.0
     
     # Write the TEMPO file for the conversion from topocentric to barycentric times
-    fh = open('bary.tmp', 'w')
-    fh.write("""C  Header Section
+    with open('bary.tmp', 'w') as fh:
+        fh.write("""C  Header Section
 HEAD                   
 PSR                 bary
 NPRNT                  2
@@ -160,10 +160,9 @@ EPHEM              DE200
 C  TOA Section (uses ITAO Format)
 C  First 8 columns must have + or -!
 TOA\n""" % (mjd, ra, dec))
-    for tMJD in topoMJD:
-        fh.write("topocen+ %19.13f  0.00     0.0000  0.000000  %s\n" % (tMJD, obs))
-    fh.close()
-    
+        for tMJD in topoMJD:
+            fh.write("topocen+ %19.13f  0.00     0.0000  0.000000  %s\n" % (tMJD, obs))
+            
     # Run TEMPO
     status = os.system('tempo bary.tmp > barycorr.out')
     if status != 0:
@@ -1063,25 +1062,22 @@ class SinglePulse_GUI(object):
                 infBase = os.path.splitext(self.filenames[0])[0]
                 infBase = "%s.inf" % infBase
                 
-                ih = open(infBase, 'r')
-                fh = open('plotSinglePulse.inf', 'w')
-                for line in ih:
-                    if len(line) < 3:
-                        continue
-                    fh.write(line)
-                ih.close()
-                fh.write("    pSP: based on template '%s'\n" % os.path.basename(infBase))
-                fh.write("    pSP: actual DM is %.3f to %.3f pc cm^-3\n" % (self.data[valid,0].min(), self.data[valid,0].max()))
-                fh.close()
+                with open(infBase, 'r') as ih:
+                    with open('plotSinglePulse.inf', 'w') as fh:
+                        for line in ih:
+                            if len(line) < 3:
+                                continue
+                            fh.write(line)
+                        fh.write("    pSP: based on template '%s'\n" % os.path.basename(infBase))
+                        fh.write("    pSP: actual DM is %.3f to %.3f pc cm^-3\n" % (self.data[valid,0].min(), self.data[valid,0].max()))
                 
                 ### Build the .export (.singlepulse-like) file
-                fh = open(outname, 'w')
-                fh.write("# DM      Sigma      Time (s)     Sample    Downfact\n")
-                for v in valid:
-                    entry = (self.data[v,0], self.data[v,1], self.data[v,2], self.data[v,3], self.data[v,4])
-                    fh.write("%6.4f  %5.2f  %11.4f  %6i  %6i\n" % entry)
-                fh.close()
-                
+                with open(outname, 'w') as fh:
+                    fh.write("# DM      Sigma      Time (s)     Sample    Downfact\n")
+                    for v in valid:
+                        entry = (self.data[v,0], self.data[v,1], self.data[v,2], self.data[v,3], self.data[v,4])
+                        fh.write("%6.4f  %5.2f  %11.4f  %6i  %6i\n" % entry)
+                        
                 print("-> Done writing %i entries" % len(valid))
                 
             elif event.key == 's':
