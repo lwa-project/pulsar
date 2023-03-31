@@ -2,13 +2,6 @@
 Unit tests for the various pulsar scripts.
 """
 
-# Python2 compatibility
-from __future__ import print_function, division, absolute_import
-try:
-    range = xrange
-except NameError:
-    pass
-    
 import unittest
 import glob
 import sys
@@ -24,7 +17,7 @@ else:
     
 run_scripts_tests = False
 try:
-    from pylint import epylint as lint
+    from pylint import run_pylint
     if MODULE_BUILD is not None:
         run_scripts_tests = True
 except ImportError:
@@ -96,7 +89,7 @@ def _test_generator(script):
     """
     
     def test(self):
-        out, err = lint.py_run("%s -E --extension-pkg-whitelist=numpy,ephem,lsl --init-hook='import sys; sys.path=[%s]; sys.path.insert(0, \"%s\")'" % (script, ",".join(['"%s"' % p for p in sys.path]), os.path.dirname(MODULE_BUILD)), return_std=True)
+        out, err = run_pylint("%s -E --extension-pkg-whitelist=numpy,ephem,lsl --init-hook='import sys; sys.path=[%s]; sys.path.insert(0, \"%s\")'" % (script, ",".join(['"%s"' % p for p in sys.path]), os.path.dirname(MODULE_BUILD)), return_std=True)
         out_lines = out.read().split('\n')
         err_lines = err.read().split('\n')
         out.close()
