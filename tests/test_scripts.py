@@ -17,7 +17,9 @@ else:
     
 run_scripts_tests = False
 try:
-    from pylint import run_pylint
+    from io import StringIO
+    from pylint.lint import Run
+    from pylint.reporters.text import TextReporter
     if MODULE_BUILD is not None:
         run_scripts_tests = True
 except ImportError:
@@ -89,11 +91,12 @@ def _test_generator(script):
     """
     
     def test(self):
-        out, err = run_pylint("%s -E --extension-pkg-whitelist=numpy,ephem,lsl --init-hook='import sys; sys.path=[%s]; sys.path.insert(0, \"%s\")'" % (script, ",".join(['"%s"' % p for p in sys.path]), os.path.dirname(MODULE_BUILD)), return_std=True)
-        out_lines = out.read().split('\n')
-        err_lines = err.read().split('\n')
-        out.close()
-        err.close()
+        pylint_output = StringIO()
+        reporter = TextReporter(pylint_output)
+        pylint_args = [script, "-E", "--extension-pkg-whitelist=numpy,ephem,lsl", "--init-hook='import sys; sys.path=[%s]; sys.path.insert(0, \"%s\")'" % (",".join(['"%s"' % p for p in sys.path]), os.path.dirname(MODULE_BUILD))]
+        Run(pylint_args, reporter=reporter)
+        out = pylint_output.getvalue()
+        out_lines = out.split('\n')
         
         for line in out_lines:
             ignore = False
