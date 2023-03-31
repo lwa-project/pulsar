@@ -65,7 +65,8 @@ _SAFE_TO_IGNORE = ["Possible",
                    "Undefined variable 'useWisdom",
                    "Class 'int' has no 'from_bytes' member",
                    "Module 'astropy.units' has no 'hourangle' member",
-                   "Module 'astropy.units' has no 'degree' member"]
+                   "Module 'astropy.units' has no 'degree' member",
+                   "Instance of 'Empty' has no 'decode' member"]
 
 
 def _get_context(filename, line, before=0, after=0):
