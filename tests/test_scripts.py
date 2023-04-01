@@ -2,13 +2,6 @@
 Unit tests for the various pulsar scripts.
 """
 
-# Python2 compatibility
-from __future__ import print_function, division, absolute_import
-try:
-    range = xrange
-except NameError:
-    pass
-    
 import unittest
 import glob
 import sys
@@ -24,7 +17,9 @@ else:
     
 run_scripts_tests = False
 try:
-    from pylint import epylint as lint
+    from io import StringIO
+    from pylint.lint import Run
+    from pylint.reporters.text import TextReporter
     if MODULE_BUILD is not None:
         run_scripts_tests = True
 except ImportError:
@@ -65,7 +60,8 @@ _SAFE_TO_IGNORE = ["Possible",
                    "Undefined variable 'useWisdom",
                    "Class 'int' has no 'from_bytes' member",
                    "Module 'astropy.units' has no 'hourangle' member",
-                   "Module 'astropy.units' has no 'degree' member"]
+                   "Module 'astropy.units' has no 'degree' member",
+                   "Instance of 'Empty' has no 'decode' member"]
 
 
 def _get_context(filename, line, before=0, after=0):
@@ -95,11 +91,12 @@ def _test_generator(script):
     """
     
     def test(self):
-        out, err = lint.py_run("%s -E --extension-pkg-whitelist=numpy,ephem,lsl --init-hook='import sys; sys.path=[%s]; sys.path.insert(0, \"%s\")'" % (script, ",".join(['"%s"' % p for p in sys.path]), os.path.dirname(MODULE_BUILD)), return_std=True)
-        out_lines = out.read().split('\n')
-        err_lines = err.read().split('\n')
-        out.close()
-        err.close()
+        pylint_output = StringIO()
+        reporter = TextReporter(pylint_output)
+        pylint_args = [script, "-E", "--extension-pkg-whitelist=numpy,ephem,lsl", "--init-hook='import sys; sys.path=[%s]; sys.path.insert(0, \"%s\")'" % (",".join(['"%s"' % p for p in sys.path]), os.path.dirname(MODULE_BUILD))]
+        Run(pylint_args, reporter=reporter, do_exit=False)
+        out = pylint_output.getvalue()
+        out_lines = out.split('\n')
         
         for line in out_lines:
             ignore = False

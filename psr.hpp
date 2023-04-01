@@ -1,9 +1,6 @@
-#ifndef __PSR_H
-#define __PSR_H
+#pragma once
 
-#include <complex.h>
-
-#include "py3_compat.h"
+#include <complex>
 
 /*
  Complex types
@@ -29,6 +26,19 @@ typedef std::complex<double> Complex64;
 /* 
  Support Functions
 */
+
+inline char* PyUnicode_AsString(PyObject *ob) {
+    PyObject *enc;
+    char *cstr;
+    enc = PyUnicode_AsEncodedString(ob, "utf-8", "Error");
+    if( enc == NULL ) {
+        PyErr_Format(PyExc_ValueError, "Cannot encode string");
+        return NULL;
+    }
+    cstr = PyBytes_AsString(enc);
+    Py_XDECREF(enc);
+    return cstr;
+}
 
 // fft.c
 void read_wisdom(char*, PyObject*);
@@ -104,5 +114,3 @@ extern PyObject *OptimizeDataLevels8Bit(PyObject*, PyObject*, PyObject*);
 extern char OptimizeDataLevels8Bit_doc[];
 extern PyObject *OptimizeDataLevels4Bit(PyObject*, PyObject*, PyObject*);
 extern char OptimizeDataLevels4Bit_doc[];
-
-#endif	// __PSR_H

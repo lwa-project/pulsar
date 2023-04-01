@@ -18,7 +18,7 @@
 #include "numpy/arrayobject.h"
 #include "numpy/npy_math.h"
 
-#include "psr.h"
+#include "psr.hpp"
 
 
 /*
@@ -225,11 +225,11 @@ PyObject *BindOpenMPToCores(PyObject *self, PyObject *args, PyObject *kwds) {
 	}
 	for(t=0; t<nthread; t++) {
 		core = PyList_GetItem(cores, t);
-		if(!PyInt_Check(core)) {
+		if(!PyLong_Check(core)) {
 			PyErr_Format(PyExc_TypeError, "Invalid parameters");
 			return NULL;
 		}
-		c = (int) PyInt_AsLong(core);
+		c = (int) PyLong_AsLong(core);
 		if( c >= ncore || (c < 0 && c != -1 ) ) {
 			PyErr_Format(PyExc_ValueError, "Invalid core for thread %d: %d", t+1, c);
 			return NULL;
@@ -259,7 +259,7 @@ PyObject *BindOpenMPToCores(PyObject *self, PyObject *args, PyObject *kwds) {
 		for(t=0; t<nthread; ++t) {
 			tid = omp_get_thread_num();
 			core = PyList_GetItem(cores, tid);
-			c = (int) PyInt_AsLong(core);
+			c = (int) PyLong_AsLong(core);
 			ret |= setCore(c);
 		}
 	#else

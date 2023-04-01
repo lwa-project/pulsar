@@ -12,8 +12,6 @@
 
 #include "numpy/arrayobject.h"
 
-#include "py3_compat.h"
-
 
 static PyObject *FastAxis0MinMax(PyObject *self, PyObject *args, PyObject *kwds) {
 	PyObject *pulses, *pulsesF;
@@ -779,29 +777,32 @@ parallel.  See the individual functions for more details.");
   Module Setup - Initialization
 */
 
-MOD_INIT(_helper) {
+PyMODINIT_FUNC PyInit__helper(void) {
 	PyObject *m, *all;
 
 	// Module definitions and functions
-	MOD_DEF(m, "_helper", HelperMethods, helper_doc);
+	static struct PyModuleDef moduledef = {
+		 PyModuleDef_HEAD_INIT, "_helper", helper_doc, -1, HelperMethods
+	};
+	m  = PyModule_Create(&moduledef);
 	if( m == NULL ) {
-        return MOD_ERROR_VAL;
+        return NULL;
     }
 	import_array();
 	
 	// Version information
-	PyModule_AddObject(m, "__version__", PyString_FromString("0.1"));
+	PyModule_AddObject(m, "__version__", PyUnicode_FromString("0.1"));
 	
 	// Function listings
 	all = PyList_New(0);
-	PyList_Append(all, PyString_FromString("FastAxis0MinMax"));
-	PyList_Append(all, PyString_FromString("FastHistogram"));
-	PyList_Append(all, PyString_FromString("FastAxis0Mean"));
-	PyList_Append(all, PyString_FromString("FastAxis1MinMax"));
-	PyList_Append(all, PyString_FromString("FastAxis0Bandpass"));
-	PyList_Append(all, PyString_FromString("FastAxis0Median"));
-	PyList_Append(all, PyString_FromString("FastAxis1Percentiles5And99"));
+	PyList_Append(all, PyUnicode_FromString("FastAxis0MinMax"));
+	PyList_Append(all, PyUnicode_FromString("FastHistogram"));
+	PyList_Append(all, PyUnicode_FromString("FastAxis0Mean"));
+	PyList_Append(all, PyUnicode_FromString("FastAxis1MinMax"));
+	PyList_Append(all, PyUnicode_FromString("FastAxis0Bandpass"));
+	PyList_Append(all, PyUnicode_FromString("FastAxis0Median"));
+	PyList_Append(all, PyUnicode_FromString("FastAxis1Percentiles5And99"));
 	PyModule_AddObject(m, "__all__", all);
 	
-	return MOD_SUCCESS_VAL(m);
+	return m;
 }

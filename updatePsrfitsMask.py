@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# Python2 compatibility
-from __future__ import print_function, division
-
 import os
 import sys
 import numpy
