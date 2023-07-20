@@ -49,7 +49,6 @@ def main(args):
         
     try:
         station = fh.attrs['StationName']
-        station = station.decode()
     except KeyError:
         station = 'lwa1'
         
@@ -58,7 +57,6 @@ def main(args):
         try:
             ## Load from the observation
             sourceName = obs1.attrs['TargetName']
-            sourceName = sourceName.decode()
             
             ## Validate
             assert(sourceName != '')
