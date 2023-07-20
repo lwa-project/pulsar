@@ -41,10 +41,7 @@ class pulsar_hdf5_tests(unittest.TestCase):
                                    'https://raw.githubusercontent.com/lwa-project/commissioning/main/DRX/HDF5/drspec2hdf.py',
                                    '-o', os.path.join(os.path.dirname(_FILENAME), 'drspec2hdf.py'),
                                    '--create-dirs'])
-            subprocess.check_call(['curl',
-                                   'https://raw.githubusercontent.com/lwa-project/commissioning/main/DRX/HDF5/data.py',
-                                   '-o', os.path.join(os.path.dirname(_FILENAME), 'data.py'),
-                                   '--create-dirs'])
+            subprocess.check_call(['cp', '../data.py', os.path.join(os.path.dirname(_FILENAME), 'data.py')])
             subprocess.check_call([sys.executable, 'drspec2hdf.py', 'drspec.dat'],
                                    cwd=os.path.dirname(_FILENAME))
             
