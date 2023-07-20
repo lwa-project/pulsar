@@ -1,5 +1,5 @@
 """
-Unit tests for a small HDF5 files generted from a DR spectrometer file.
+Unit tests for a small HDF5 files generated from a DR spectrometer file.
 """
 
 import unittest
