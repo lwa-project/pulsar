@@ -13,7 +13,7 @@ import subprocess
 
 _URL = 'https://lda10g.alliance.unm.edu/tutorial/B0329+54/056770_000044687'
 _SIZE_MB = 250
-_FILENAME = 'data/drspec.hdf5'
+_FILENAME = 'data/drspec-waterfall.hdf5'
 
 
 currentDir = os.path.abspath(os.getcwd())
