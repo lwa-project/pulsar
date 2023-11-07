@@ -26,7 +26,7 @@
   Module Setup - Function Definitions and Documentation
 */
 
-static PyMethodDef SpecMethods[] = {
+static PyMethodDef psr_methods[] = {
 	{"BindToCore",             (PyCFunction) BindToCore,             METH_VARARGS,               BindToCore_doc             },
 	{"BindOpenMPToCores",      (PyCFunction) BindOpenMPToCores,      METH_VARARGS,               BindOpenMPToCores_doc      }, 
 	{"PulsarEngineRaw",        (PyCFunction) PulsarEngineRaw,        METH_VARARGS|METH_KEYWORDS, PulsarEngineRaw_doc        },
@@ -44,7 +44,7 @@ static PyMethodDef SpecMethods[] = {
 	{NULL,                     NULL,                                 0,                          NULL                       }
 };
 
-PyDoc_STRVAR(spec_doc, \
+PyDoc_STRVAR(psr_doc, \
 "Extension to take timeseries data and convert it to the frequency domain.\n\
 \n\
 The functions defined in this module are:\n\
@@ -79,51 +79,65 @@ See the inidividual functions for more details.");
   Module Setup - Initialization
 */
 
-PyMODINIT_FUNC PyInit__psr(void) {
-	char filename[256];
-	PyObject *m, *all, *pModule, *pDataPath;
+static int psr_exec(PyObject *module) {
+		import_array();
+		
+		// Version information
+		PyModule_AddObject(module, "__version__", PyUnicode_FromString("0.6"));
+		
+		// Function listings
+		PyObject* all = PyList_New(0);
+		PyList_Append(all, PyUnicode_FromString("BindToCore"));
+		PyList_Append(all, PyUnicode_FromString("BindOpenMPToCores"));
+		PyList_Append(all, PyUnicode_FromString("PulsarEngineRaw"));
+		PyList_Append(all, PyUnicode_FromString("PulsarEngineRawWindow"));
+		PyList_Append(all, PyUnicode_FromString("PhaseRotator"));
+		PyList_Append(all, PyUnicode_FromString("ComputeSKMask"));
+		PyList_Append(all, PyUnicode_FromString("ComputePseudoSKMask"));
+		PyList_Append(all, PyUnicode_FromString("MultiChannelCD"));
+		PyList_Append(all, PyUnicode_FromString("CombineToIntensity"));
+		PyList_Append(all, PyUnicode_FromString("CombineToLinear"));
+		PyList_Append(all, PyUnicode_FromString("CombineToCircular"));
+		PyList_Append(all, PyUnicode_FromString("CombineToStokes"));
+		PyList_Append(all, PyUnicode_FromString("OptimizeDataLevels8Bit"));
+		PyList_Append(all, PyUnicode_FromString("OptimizeDataLevels4Bit"));
+		PyList_Append(all, PyUnicode_FromString("useWisdom"));
+		PyModule_AddObject(module, "__all__", all);
+		
+		// LSL FFTW Wisdom
+		PyObject* pModule = PyImport_ImportModule("lsl.common.paths");
+		if( pModule != NULL ) {
+				PyObject* pDataPath = PyObject_GetAttrString(pModule, "DATA");
+				if( pDataPath != NULL ) {
+						char filename[256];
+						sprintf(filename, "%s/fftw_wisdom.txt", PyUnicode_AsString(pDataPath));
+						read_wisdom(filename, module);
+				}
+				Py_XDEFREF(pDataPath);
+		} else {
+				PyErr_Warn(PyExc_RuntimeWarning, "Cannot load the LSL FFTWF wisdom");
+		}
+		Py_XDEFREF(pModule);
+		return 0;
+}
 
-	// Module definitions and functions
-	static struct PyModuleDef moduledef = {
-		 PyModuleDef_HEAD_INIT, "_psr", spec_doc, -1, SpecMethods
-	};
-	m  = PyModule_Create(&moduledef);
-	if( m == NULL ) {
-        return NULL;
-    }
-	import_array();
-	
-	// Version information
-	PyModule_AddObject(m, "__version__", PyUnicode_FromString("0.6"));
-	
-	// Function listings
-	all = PyList_New(0);
-	PyList_Append(all, PyUnicode_FromString("BindToCore"));
-	PyList_Append(all, PyUnicode_FromString("BindOpenMPToCores"));
-	PyList_Append(all, PyUnicode_FromString("PulsarEngineRaw"));
-	PyList_Append(all, PyUnicode_FromString("PulsarEngineRawWindow"));
-	PyList_Append(all, PyUnicode_FromString("PhaseRotator"));
-	PyList_Append(all, PyUnicode_FromString("ComputeSKMask"));
-	PyList_Append(all, PyUnicode_FromString("ComputePseudoSKMask"));
-	PyList_Append(all, PyUnicode_FromString("MultiChannelCD"));
-	PyList_Append(all, PyUnicode_FromString("CombineToIntensity"));
-	PyList_Append(all, PyUnicode_FromString("CombineToLinear"));
-	PyList_Append(all, PyUnicode_FromString("CombineToCircular"));
-	PyList_Append(all, PyUnicode_FromString("CombineToStokes"));
-	PyList_Append(all, PyUnicode_FromString("OptimizeDataLevels8Bit"));
-	PyList_Append(all, PyUnicode_FromString("OptimizeDataLevels4Bit"));
-	PyList_Append(all, PyUnicode_FromString("useWisdom"));
-	PyModule_AddObject(m, "__all__", all);
-	
-	// LSL FFTW Wisdom
-	pModule = PyImport_ImportModule("lsl.common.paths");
-	if( pModule != NULL ) {
-		pDataPath = PyObject_GetAttrString(pModule, "DATA");
-		sprintf(filename, "%s/fftw_wisdom.txt", PyUnicode_AsString(pDataPath));
-		read_wisdom(filename, m);
-	} else {
-		PyErr_Warn(PyExc_RuntimeWarning, "Cannot load the LSL FFTWF wisdom");
-	}
-	
-	return m;
+static PyModuleDef_Slot psr_slots[] = {
+    {Py_mod_exec, (void *)&psr_exec},
+    {0,           NULL}
+};
+
+static PyModuleDef psr_def = {
+    PyModuleDef_HEAD_INIT,    /* m_base */
+    "_psr",                   /* m_name */
+    psr_doc,                  /* m_doc */
+    0,                        /* m_size */
+    psr_methods,              /* m_methods */
+    psr_slots,                /* m_slots */
+    NULL,                     /* m_traverse */
+    NULL,                     /* m_clear */
+    NULL,                     /* m_free */
+};
+
+PyMODINIT_FUNC PyInit__psr(void) {
+	return PyModuleDef_Init(&psr_def);
 }
