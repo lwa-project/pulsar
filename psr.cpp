@@ -113,11 +113,11 @@ static int psr_exec(PyObject *module) {
 						sprintf(filename, "%s/fftw_wisdom.txt", PyUnicode_AsString(pDataPath));
 						read_wisdom(filename, module);
 				}
-				Py_XDEFREF(pDataPath);
+				Py_XDECREF(pDataPath);
 		} else {
 				PyErr_Warn(PyExc_RuntimeWarning, "Cannot load the LSL FFTWF wisdom");
 		}
-		Py_XDEFREF(pModule);
+		Py_XDECREF(pModule);
 		return 0;
 }
 
