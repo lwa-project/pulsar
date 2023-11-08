@@ -44,7 +44,7 @@ def main(args):
     if args.source is not None:
         if args.ra is None or args.dec is None:
             tempRA, tempDec, tempService = resolveTarget('PSR '+args.source)
-            print("%s resolved to %s, %s using '%s'" % (args.source, tempRA, tempDec, tempService))
+            print(f"{args.source} resolved to {tempRA}, {tempDec} using '{tempService}'")
             out = input('=> Accept? [Y/n] ')
             if out == 'n' or out == 'N':
                 sys.exit()
@@ -92,20 +92,20 @@ def main(args):
     mjd_day = int(mjd)
     mjd_sec = (mjd-mjd_day)*86400
     if args.output is None:
-        args.output = "drx_%05d_%s" % (mjd_day, args.source.replace(' ', ''))
+        args.output = f"drx_{mjd_daty:05d}_{args.source.replace(' ', '')}"
         
     # File summary
-    print("Input Filename: %s" % args.filename)
-    print("Date of First Frame: %s (MJD=%f)" % (str(beginDate),mjd))
-    print("Beam: %i" % beam)
-    print("Tunings: %.1f Hz, %.1f Hz" % (central_freq1, central_freq2))
-    print("Sample Rate: %i Hz" % srate)
-    print("Sample Time: %f s" % tInt)
-    print("Sub-block Time: %f s" % (tInt*nsblk,))
-    print("Data Products: %s" % ','.join(data_products))
-    print("Frames: %i (%.3f s)" % (nFramesFile, tInt*nFramesFile))
+    print(f"Input Filename: {args.filename}")
+    print(f"Date of First Frame: {str(beginDate)} (MJD={mjd:f})")
+    print(f"Beam: {beam}")
+    print(f"Tunings: {central_freq1:.1f} Hz, {central_freq2:.1f} Hz")
+    print(f"Sample Rate: {srate} Hz")
+    print(f"Sample Time: {tInt:f} s")
+    print(f"Sub-block Time: {tInt * nsblk:f} s")
+    print(f"Data Products: {','.join(data_products)}")
+    print(f"Frames: {nFramesFile} ({tInt*nFramesFile:.3f} s)")
     print("---")
-    print("Offset: %.3f s (%.0f frames)" % (o, o/tInt))
+    print(f"Offset: {o:.3f} s ({o / tInt:.0f} frames)")
     print("---")
     
     # Create the output PSRFITS file(s)
@@ -134,7 +134,7 @@ def main(args):
     for t in range(1, 2+1):
         ## Basic structure and bounds
         pfo = pfu.psrfits()
-        pfo.basefilename = "%s_b%it%i" % (args.output, beam, t)
+        pfo.basefilename = f"{args.output}_b{beam}t{t}"
         pfo.filenum = 0
         pfo.tot_rows = pfo.N = pfo.T = pfo.status = pfo.multifile = 0
         pfo.rows_per_file = 32768

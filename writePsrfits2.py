@@ -59,7 +59,7 @@ def reader(idf, chunkTime, outQueue, core=None, verbose=True):
     if core is not None:
         cstatus = BindToCore(core)
         if verbose:
-            print('Binding reader to core %i -> %s' % (core, cstatus))
+            print(f"Binding reader to core {core} -> {cstatus}")
             
     try:
         while True:
@@ -100,7 +100,7 @@ def main(args):
     if args.source is not None:
         if args.ra is None or args.dec is None:
             tempRA, tempDec, tempService = resolveTarget('PSR '+args.source)
-            print("%s resolved to %s, %s using '%s'" % (args.source, tempRA, tempDec, tempService))
+            print(f"{args.source} resolved to {tempRA}, {tempDec} using '{tempService}'")
             out = input('=> Accept? [Y/n] ')
             if out == 'n' or out == 'N':
                 sys.exit()
@@ -146,7 +146,7 @@ def main(args):
     mjd_day = int(mjd)
     mjd_sec = (mjd-mjd_day)*86400
     if args.output is None:
-        args.output = "drx_%05d_%s" % (mjd_day, args.source.replace(' ', ''))
+        args.output = f"drx_{mjd_day:05d}_{args.source.replace(' ', '')}"
         
     ## Tuning frequencies
     central_freq1 = idf.get_info('freq1')
@@ -154,18 +154,18 @@ def main(args):
     beam = idf.get_info('beam')
     
     # File summary
-    print("Input Filename: %s" % args.filename)
-    print("Date of First Frame: %s (MJD=%f)" % (str(beginDate),mjd))
-    print("Tune/Pols: %i" % tunepol)
-    print("Tunings: %.1f Hz, %.1f Hz" % (central_freq1, central_freq2))
-    print("Sample Rate: %i Hz" % srate)
-    print("Sample Time: %f s" % (LFFT/srate,))
-    print("Sub-block Time: %f s" % (LFFT/srate*nsblk,))
+    print(f"Input Filename: {args.filename}")
+    print(f"Date of First Frame: {str(beginDate)} (MJD={mjd:f})")
+    print(f"Tune/Pols: {tunepol}")
+    print(f"Tunings: {central_freq1:.1f} Hz, {central_freq2:.1f} Hz")
+    print(f"Sample Rate: {srate} Hz")
+    print(f"Sample Time: {LFFT / srate:f} s")
+    print(f"Sub-block Time: {LFFT / srate * nsblk:f} s")
     print("Frames: %i (%.3f s)" % (nFramesFile, 4096.0*nFramesFile / srate / tunepol))
     print("---")
-    print("Offset: %.3f s (%i frames)" % (o, o*srate//4096*tunepol))
+    print(f"Offset: {o:.3f} s ({o*srate//4096*tunepol} frames)")
     print("---")
-    print("Using FFTW Wisdom? %s" % useWisdom)
+    print(f"Using FFTW Wisdom? {useWisdom}")
     
     # Create the output PSRFITS file(s)
     pfu_out = []
@@ -194,7 +194,7 @@ def main(args):
     for t in range(1, 2+1):
         ## Basic structure and bounds
         pfo = pfu.psrfits()
-        pfo.basefilename = "%s_b%it%i" % (args.output, beam, t)
+        pfo.basefilename = f"{args.output}_b{beam}t{t}"
         pfo.filenum = 0
         pfo.tot_rows = pfo.N = pfo.T = pfo.status = pfo.multifile = 0
         pfo.rows_per_file = 32768

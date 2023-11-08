@@ -61,7 +61,7 @@ def reader(idf, chunkTime, outQueue, core=None, verbose=True):
     if core is not None:
         cstatus = BindToCore(core)
         if verbose:
-            print('Binding reader to core %i -> %s' % (core, cstatus))
+            print(f"Binding reader to core {core} -> {cstatus}")
             
     try:
         while True:
@@ -103,7 +103,7 @@ def main(args):
     if args.source is not None:
         if args.ra is None or args.dec is None:
             tempRA, tempDec, tempService = resolveTarget('PSR '+args.source)
-            print("%s resolved to %s, %s using '%s'" % (args.source, tempRA, tempDec, tempService))
+            print(f"{args.source} resolved to {tempRA}, {tempDec} using '{tempService}'")
             out = input('=> Accept? [Y/n] ')
             if out == 'n' or out == 'N':
                 sys.exit()
@@ -257,7 +257,7 @@ def main(args):
         mjd_day = int(mjd)
         mjd_sec = (mjd-mjd_day)*86400
         if args.output is None:
-            args.output = "drx_%05d_%s" % (mjd_day, args.source.replace(' ', ''))
+            args.output = f"drx_{mjd_day:05d}_{args.source.replace(' ', '')}"
             
         ## Tuning frequencies
         central_freq1 = idf.get_info('freq1')
@@ -270,17 +270,17 @@ def main(args):
         spectraFreq2 = numpy.fft.fftshift( numpy.fft.fftfreq(LFFT, d=1.0/srate) ) + central_freq2
         
         # File summary
-        print("Input Filename: %s (%i of %i)" % (filename, c+1, len(args.filename)))
-        print("Date of First Frame: %s (MJD=%f)" % (str(beginDate),mjd))
-        print("Tune/Pols: %i" % tunepol)
-        print("Tunings: %.1f Hz, %.1f Hz" % (central_freq1, central_freq2))
-        print("Sample Rate: %i Hz" % srate)
-        print("Sample Time: %f s" % (LFFT/srate,))
-        print("Sub-block Time: %f s" % (LFFT/srate*nsblk,))
-        print("Frames: %i (%.3f s)" % (nFramesFile, 4096.0*nFramesFile / srate / tunepol))
+        print(f"Input Filename: {filename} ({c+1} of {len(args.filename})")
+        print(f"Date of First Frame: {str(beginDate)} (MJD={mjd:f})")
+        print(f"Tune/Pols: {tunepol}")
+        print(f"Tunings: {central_freq1:.1f} Hz, {central_freq2:.1f} Hz")
+        print(f"Sample Rate: {srate} Hz")
+        print(f"Sample Time: {LFFT / srate:f} s")
+        print(f"Sub-block Time: {LFFT / srate * nsblk:f} s")
+        print(f"Frames: {nFramesFile} ({4096.0*nFramesFile / srate / tunepol:.3f} s)")
         print("---")
-        print("Using FFTW Wisdom? %s" % useWisdom)
-        print("DM: %.4f pc / cm^3" % DM)
+        print(f"Using FFTW Wisdom? {useWisdom}")
+        print(f"DM: {DM:.4f} pc / cm^3")
         print("Samples Needed: %i, %i to %i, %i" % (get_coherent_sample_size(central_freq1-srate/2, 1.0*srate/LFFT, DM), get_coherent_sample_size(central_freq2-srate/2, 1.0*srate/LFFT, DM), get_coherent_sample_size(central_freq1+srate/2, 1.0*srate/LFFT, DM), get_coherent_sample_size(central_freq2+srate/2, 1.0*srate/LFFT, DM)))
         
         # Parameter validation
@@ -290,7 +290,7 @@ def main(args):
             raise RuntimeError("Too few samples for coherent dedispersion.  Considering increasing the number of channels.")
             
         # Adjust the time for the padding used for coherent dedispersion
-        print("MJD shifted by %.3f ms to account for padding" %  (nsblk*LFFT/srate*1000.0,))
+        print(f"MJD shifted by {nsblk * LFFT / srate * 1000.0:.3f} ms to account for padding")
         beginDate = idf.get_info('start_time') + nsblk*LFFT/srate
         beginTime = beginDate.datetime
         mjd = beginDate.mjd
@@ -300,7 +300,7 @@ def main(args):
         for t in range(1, 2+1):
             ## Basic structure and bounds
             pfo = pfu.psrfits()
-            pfo.basefilename = "%s_b%it%i" % (args.output, beam, t)
+            pfo.basefilename = f"{args.output}_b{beam}t{t}"
             pfo.filenum = 0
             pfo.tot_rows = pfo.N = pfo.T = pfo.status = pfo.multifile = 0
             pfo.rows_per_file = 32768

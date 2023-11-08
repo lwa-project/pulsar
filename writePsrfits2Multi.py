@@ -60,7 +60,7 @@ def reader(idf, chunkTime, outQueue, core=None, verbose=True):
     if core is not None:
         cstatus = BindToCore(core)
         if verbose:
-            print('Binding reader to core %i -> %s' % (core, cstatus))
+            print(f"Binding reader to core {core} -> {cstatus}")
             
     try:
         while True:
@@ -102,7 +102,7 @@ def main(args):
     if args.source is not None:
         if args.ra is None or args.dec is None:
             tempRA, tempDec, tempService = resolveTarget('PSR '+args.source)
-            print("%s resolved to %s, %s using '%s'" % (args.source, tempRA, tempDec, tempService))
+            print(f"{args.source} resolved to {tempRA}, {tempDec} using '{tempService}'")
             out = input('=> Accept? [Y/n] ')
             if out == 'n' or out == 'N':
                 sys.exit()
@@ -261,23 +261,23 @@ def main(args):
         beam = idf.get_info('beam')
         
         # File summary
-        print("Input Filename: %s (%i of %i)" % (filename, c+1, len(args.filename)))
-        print("Date of First Frame: %s (MJD=%f)" % (str(beginDate),mjd))
-        print("Tune/Pols: %i" % tunepol)
-        print("Tunings: %.1f Hz, %.1f Hz" % (central_freq1, central_freq2))
-        print("Sample Rate: %i Hz" % srate)
-        print("Sample Time: %f s" % (LFFT/srate,))
-        print("Sub-block Time: %f s" % (LFFT/srate*nsblk,))
-        print("Frames: %i (%.3f s)" % (nFramesFile, 4096.0*nFramesFile / srate / tunepol))
+        print(f"Input Filename: {filename} ({c+1} of {len(args.fileaname)})")
+        print(f"Date of First Frame: {str(beginDate)} (MJD={mjd:f})")
+        print(f"Tune/Pols: {tunepol}")
+        print(f"Tunings: {central_freq1:.1f} Hz, {central_freq2:.1f} Hz")
+        print(f"Sample Rate: {srate} Hz")
+        print(f"Sample Time: {LFFT / srate:f} s")
+        print(f"Sub-block Time: {LFFT / srate * nsblk:f} s")
+        print(f"Frames: {nFramesFile} ({4096.0*nFramesFile / srate / tunepol:.3f} s)"
         print("---")
-        print("Using FFTW Wisdom? %s" % useWisdom)
+        print(f"Using FFTW Wisdom? {useWisdom}")
         
         # Create the output PSRFITS file(s)
         pfu_out = []
         for t in range(1, 2+1):
             ## Basic structure and bounds
             pfo = pfu.psrfits()
-            pfo.basefilename = "%s_b%it%i" % (args.output, beam, t)
+            pfo.basefilename = f"{args.output}_b{beam}t{t}"
             pfo.filenum = 0
             pfo.tot_rows = pfo.N = pfo.T = pfo.status = pfo.multifile = 0
             pfo.rows_per_file = 32768

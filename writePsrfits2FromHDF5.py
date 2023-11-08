@@ -93,7 +93,7 @@ def main(args):
     if args.source is not None:
         if args.ra is None or args.dec is None:
             tempRA, tempDec, tempService = resolveTarget('PSR '+args.source)
-            print("%s resolved to %s, %s using '%s'" % (args.source, tempRA, tempDec, tempService))
+            print(f"{args.source} resolved to {tempRA}, {tempDec} using '{tempService}'")
             out = input('=> Accept? [Y/n] ')
             if out == 'n' or out == 'N':
                 sys.exit()
@@ -157,18 +157,18 @@ def main(args):
     mjd_day = int(mjd)
     mjd_sec = (mjd-mjd_day)*86400
     if args.output is None:
-        args.output = "drx_%05d_%s" % (mjd_day, args.source.replace(' ', ''))
+        args.output = f"drx_{mjd_day:05d}_{args.source.replace(' ', '')}"
         
     # File summary
-    print("Input Filename: %s" % args.filename)
-    print("Date of First Frame: %s (MJD=%f)" % (str(beginDate),mjd))
-    print("Beam: %i" % beam)
-    print("Tunings: %.1f Hz, %.1f Hz" % (central_freq1, central_freq2))
-    print("Sample Rate: %i Hz" % srate)
-    print("Sample Time: %f s" % tInt)
-    print("Sub-block Time: %f s" % (tInt*nsblk,))
-    print("Data Products: %s" % ','.join(data_products))
-    print("Frames: %i (%.3f s)" % (nFramesFile, tInt*nFramesFile))
+    print(f"Input Filename: {args.filename}")
+    print(f"Date of First Frame: {str(beginDate)} (MJD={mjd:f})")
+    print(f"Beam: {beam}")
+    print(f"Tunings: {central_freq1:.1f} Hz, {central_freq2:.1f} Hz")
+    print(f"Sample Rate: {srate} Hz")
+    print(f"Sample Time: {tInt:f} s")
+    print(f"Sub-block Time: {tInt * nsblk:f} s")
+    print(f"Data Products: {','.join(data_products)}")
+    print(f"Frames: {nFramesFile} ({tInt*nFramesFile:.3f} s)")
     print("---")
     
     # Create the output PSRFITS file(s)
@@ -204,7 +204,7 @@ def main(args):
         iPols = len(data_products)
         nPols = len(allowed_products)
         if nPols == 0:
-            raise RuntimeError('No valid polarization products found: %s' % (','.join(data_products),))
+            raise RuntimeError(f"No valid polarization products found: {','.join(data_products)}")
         def reduceEngine(x, iPols=iPols, nPols=nPols, indicies=allowed_indices):
             y = numpy.zeros((len(allowed_products),x.shape[1]), dtype=numpy.float32)
             for i,j in enumerate(indicies):
@@ -223,7 +223,7 @@ def main(args):
             
         ## Basic structure and bounds
         pfo = pfu.psrfits()
-        pfo.basefilename = "%s_b%it%i" % (args.output, beam, t)
+        pfo.basefilename = f"{args.output}_b{beam}t{t}"
         pfo.filenum = 0
         pfo.tot_rows = pfo.N = pfo.T = pfo.status = pfo.multifile = 0
         pfo.rows_per_file = 32768
@@ -346,7 +346,7 @@ def main(args):
             try:
                 if nTime > oTime + 1.001*tInt:
                     # pylint: disable-next=bad-string-format-type
-                    print('Warning: Time tag error in subint. %i; %.3f > %.3f + %.3f' % (siCount, nTime, oTime, tInt))
+                    print(f"Warning: Time tag error in subint. {siCount}; {nTime:.3f} > {oTime:.3f} + {tInt:.3f}")
             except NameError:
                 pass
             oTime = nTime
