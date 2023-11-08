@@ -122,8 +122,8 @@ def main(args):
         args.duration = dur * tSubs
         
         ## Report
-        print("Filename: %s (%i of %i)" % (filename, c+1, len(filenames)))
-        print("Date of First Frame: %s" % tStart.datetime)
+        print(f"Filename: {filename} ({c+1} of {len(filenames)})")
+        print(f"Date of First Frame: {tStart.datetime}")
         print(f"Beam: {beam}")
         print(f"Tuning: {tuning}")
         print(f"Sample Rate: {srate} Hz")
