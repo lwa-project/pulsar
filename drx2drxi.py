@@ -186,12 +186,12 @@ def main(args):
     beam = idf.get_info('beam')
     
     # File summary
-    print("Input Filename: %s" % args.filename)
-    print("Date of First Frame: %s (MJD=%f)" % (str(beginDate),mjd))
-    print("Tune/Pols: %i" % tunepol)
-    print("Tunings: %.1f Hz, %.1f Hz" % (central_freq1, central_freq2))
-    print("Sample Rate: %i Hz" % srate)
-    print("Frames: %i (%.3f s)" % (nFramesFile, 4096.0*nFramesFile / srate / tunepol))
+    print(f"Input Filename: {args.filename}")
+    print(f"Date of First Frame: {beginDate} (MJD={mjd:f})")
+    print(f"Tune/Pols: {tunepol}")
+    print(f"Tunings: {central_freq1:.1f} Hz, {central_freq2:.1f} Hz")
+    print(f"Sample Rate: {srate} Hz")
+    print(f"Frames: {nFramesFile} ({4096.0*nFramesFile / srate / tunepol:.3f} s)")
     
     if args.count > 0:
         nCaptures = int(args.count * srate / 4096)
@@ -200,20 +200,20 @@ def main(args):
         args.count = nCaptures * 4096 / srate
     nSkip = int(args.offset * srate / 4096 )
     
-    print("Seconds to Skip:  %.2f (%i captures)" % (args.offset, nSkip))
-    print("Seconds to Split: %.2f (%i captures)" % (args.count, nCaptures))
+    print(f"Seconds to Skip:  {args.offset:.2f} ({nSkip} captures)")
+    print(f"Seconds to Split: {args.count:.2f} ({nCaptures} captures)")
     
     outname = os.path.basename(args.filename)
     outname = os.path.splitext(outname)[0]
-    print("Writing %.2f s to file '%s_b%it[12].dat'" % (nCaptures*4096/srate, outname, beam))
+    print(f"Writing {nCaptures*4096/srate:.2f} s to file '{outname}_b{beam}t[12].dat'")
     
     # Ready the internal interface for file access
     fh = idf.fh
         
     # Ready the output files - one for each tune/pol
     fhOut = []
-    fhOut.append( open("%s_b%it1.dat" % (outname, beam), 'wb') )
-    fhOut.append( open("%s_b%it2.dat" % (outname, beam), 'wb') )
+    fhOut.append( open(f"{outname}_b{beam}t1.dat", 'wb') )
+    fhOut.append( open(f"{outname}_b{beam}t2.dat", 'wb') )
     
     pb = progress.ProgressBarPlus(max=nCaptures)
     
@@ -293,7 +293,7 @@ def main(args):
                 try:
                     ttDiff = timetag - ttLast
                     if ttDiff != ttSkip:
-                        raise RuntimeError("timetag skip at %i, %i != %i (%.1f frames)" % (c, ttDiff, ttSkip, 1.0*ttDiff/ttSkip))
+                        raise RuntimeError(f"timetag skip at {c}, {ttDiff} != {ttSkip} ({1.0*ttDiff/ttSkip:.1f} frames)")
                 except NameError:
                     pass
                 ttLast = timetag
@@ -347,7 +347,7 @@ def main(args):
                     try:
                         ttDiff = timetag - ttLast
                         if ttDiff != ttSkip:
-                            raise RuntimeError("timetag skip at %i, %i != %i (%.1f frames)" % (c, ttDiff, ttSkip, 1.0*ttDiff/ttSkip))
+                            raise RuntimeError(f"timetag skip at {c}, {ttDiff} != {ttSkip} ({1.0*ttDiff/ttSkip:.1f} frames)")
                     except NameError:
                         pass
                     ttLast = timetag
