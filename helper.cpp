@@ -755,7 +755,7 @@ Outputs:\n\
   Module Setup - Function Definitions and Documentation
 */
 
-static PyMethodDef HelperMethods[] = {
+static PyMethodDef helper_methods[] = {
 	{"FastAxis0MinMax",            (PyCFunction) FastAxis0MinMax,            METH_VARARGS|METH_KEYWORDS, FastAxis0MinMax_doc}, 
 	{"FastHistogram",              (PyCFunction) FastHistogram,              METH_VARARGS|METH_KEYWORDS, FastHistogram_doc}, 
 	{"FastAxis0Mean",              (PyCFunction) FastAxis0Mean,              METH_VARARGS,               FastAxis0Mean_doc}, 
@@ -777,32 +777,42 @@ parallel.  See the individual functions for more details.");
   Module Setup - Initialization
 */
 
-PyMODINIT_FUNC PyInit__helper(void) {
-	PyObject *m, *all;
+static int helper_exec(PyObject *module) {
+		import_array();
+		
+		// Version information
+		PyModule_AddObject(module, "__version__", PyUnicode_FromString("0.1"));
+		
+		// Function listings
+		all = PyList_New(0);
+		PyList_Append(all, PyUnicode_FromString("FastAxis0MinMax"));
+		PyList_Append(all, PyUnicode_FromString("FastHistogram"));
+		PyList_Append(all, PyUnicode_FromString("FastAxis0Mean"));
+		PyList_Append(all, PyUnicode_FromString("FastAxis1MinMax"));
+		PyList_Append(all, PyUnicode_FromString("FastAxis0Bandpass"));
+		PyList_Append(all, PyUnicode_FromString("FastAxis0Median"));
+		PyList_Append(all, PyUnicode_FromString("FastAxis1Percentiles5And99"));
+		PyModule_AddObject(module, "__all__", all);
+		return 0;
+}
 
-	// Module definitions and functions
-	static struct PyModuleDef moduledef = {
-		 PyModuleDef_HEAD_INIT, "_helper", helper_doc, -1, HelperMethods
-	};
-	m  = PyModule_Create(&moduledef);
-	if( m == NULL ) {
-        return NULL;
-    }
-	import_array();
-	
-	// Version information
-	PyModule_AddObject(m, "__version__", PyUnicode_FromString("0.1"));
-	
-	// Function listings
-	all = PyList_New(0);
-	PyList_Append(all, PyUnicode_FromString("FastAxis0MinMax"));
-	PyList_Append(all, PyUnicode_FromString("FastHistogram"));
-	PyList_Append(all, PyUnicode_FromString("FastAxis0Mean"));
-	PyList_Append(all, PyUnicode_FromString("FastAxis1MinMax"));
-	PyList_Append(all, PyUnicode_FromString("FastAxis0Bandpass"));
-	PyList_Append(all, PyUnicode_FromString("FastAxis0Median"));
-	PyList_Append(all, PyUnicode_FromString("FastAxis1Percentiles5And99"));
-	PyModule_AddObject(m, "__all__", all);
-	
-	return m;
+static PyModuleDef_Slot helper_slots[] = {
+    {Py_mod_exec, (void *)&helper_exec},
+    {0,           NULL}
+};
+
+static PyModuleDef helper_def = {
+    PyModuleDef_HEAD_INIT,    /* m_base */
+    "_helper",                /* m_name */
+    helper_doc,               /* m_doc */
+    0,                        /* m_size */
+    helper_methods,           /* m_methods */
+    helper_slots,             /* m_slots */
+    NULL,                     /* m_traverse */
+    NULL,                     /* m_clear */
+    NULL,                     /* m_free */
+};
+
+PyMODINIT_FUNC PyInit__helper(void) {
+	return PyModuleDef_Init(&helper_def);
 }
