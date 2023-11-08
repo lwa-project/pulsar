@@ -31,7 +31,7 @@ def main(args):
         args.frequencies = []
         
     for filename in args.filename:
-        print("Working on '%s'..." % os.path.basename(filename))
+        print(f"Working on '{os.path.basename(filename)}'")
         
         # Open the PRSFITS file
         hdulist = astrofits.open(filename, mode='update', memmap=True)
@@ -42,11 +42,11 @@ def main(args):
         nSubs = hdulist[1].header['NSBLK']
         tInt = hdulist[1].data[0][0]
         nSubsChunk = int( numpy.ceil( args.duration/tInt ) )
-        print("  Polarizations: %i" % nPol)
-        print("  Sub-integration time: %.3f ms" % (tInt/nSubs*1000.0,))
-        print("  Sub-integrations per block: %i" % nSubs)
-        print("  Block integration time: %.3f ms" % (tInt*1000.0,))
-        print("  Working in chunks of %i blocks (%.3f s)" % (nSubsChunk, nSubsChunk*tInt))
+        print(f"  Polarizations: {nPol}")
+        print(f"  Sub-integration time: {tInt/nSubs*1000.0:.3f} ms")
+        print(f"  Sub-integrations per block: {nSubs}")
+        print(f"  Block integration time: {tInt*1000.0:.3f} ms")
+        print(f"  Working in chunks of {nSubsChunk} blocks ({nSubsChunk*tInt:.3f} s)")
         
         # Figure out the SK parameters to use
         srate = hdulist[0].header['OBSBW']*1e6
@@ -56,9 +56,9 @@ def main(args):
         if nPol == 1:
             skN *= 2
         skLimits = kurtosis.get_limits(args.sk_sigma, skM, N=1.0*skN)
-        print("  (p)SK M: %i" % (nSubsChunk*nSubs,))
-        print("  (p)SK N: %i" % skN)
-        print("  (p)SK Limits: %.4f <= valid <= %.4f" % skLimits)
+        print(f"  (p)SK M: {nSubsChunk*nSubs}")
+        print(f"  (p)SK N: {skN}")
+        print(f"  (p)SK Limits: {skLimits[0]:.4f} <= valid <= {skLimits[1]:.4f}")
         
         # Figure out what to mask for the specified frequencies and report
         toMask = []
@@ -72,7 +72,7 @@ def main(args):
             toMask.sort()
             print("  Masking Channels:")
             for c in toMask:
-                print("    %i -> %.3f MHz" % (c, freq[c]))
+                print(f"    {c} -> {freq[c]:.3f} MHz")
                 
         # Setup the progress bar
         try:
