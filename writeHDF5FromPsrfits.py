@@ -88,9 +88,9 @@ def main(args):
             validationPass = True
             for keyword in ('sourceName', 'ra', 'dec', 'epoch', 'tStart', 'srate', 'LFFT', 'tInt', 'tSubs', 'nPol', 'nChunks'):
                 keywordOld = keyword+"Old"
-                valid = eval("%s == %s" % (keyword, keywordOld))
+                valid = eval(f"{keyword} == {keywordOld}")
                 if not valid:
-                    print("ERROR:  Detail '%s' of %s does not match that of the first file" % (keyword, os.path.basename(filename)))
+                    print(f"ERROR:  Detail '{keyword}' of {os.path.basename(filename)} does not match that of the first file")
                     print("ERROR:  Aborting")
                     validationPass = False
                     
@@ -124,21 +124,21 @@ def main(args):
         ## Report
         print("Filename: %s (%i of %i)" % (filename, c+1, len(filenames)))
         print("Date of First Frame: %s" % tStart.datetime)
-        print("Beam: %i" % beam)
-        print("Tuning: %i" % tuning)
-        print("Sample Rate: %i Hz" % srate)
-        print("Tuning Frequency: %.3f Hz" % cFreq)
+        print(f"Beam: {beam}")
+        print(f"Tuning: {tuning}")
+        print(f"Sample Rate: {srate} Hz")
+        print(f"Tuning Frequency: {cFreq:.3f} Hz")
         print("---")
-        print("Target: %s" % sourceName)
-        print("RA: %.3f hours" % (ra/15.0,))
-        print("Dec: %.3f degrees" % dec)
-        print("Data Products: %s" % ','.join(data_products))
-        print("Integration Time: %.3f ms" % (tInt*1e3,))
-        print("Sub-integrations: %i (%.3f s)" % (nChunks, nChunks*tSubs))
+        print(f"Target: {sourceName}")
+        print(f"RA: {ra/15.0:.3f} hours")
+        print(f"Dec: %.3f degrees" % dec)
+        print(f"Data Products: {','.join(data_products)}")
+        print(f"Integration Time: {tInt*1e3:.3f} ms")
+        print(f"Sub-integrations: {nChunks} ({nChunks*tSubs:.3f} s)")
         print("---")
-        print("Offset: %.3f s (%i subints.)" % (args.skip, skip))
-        print("Duration: %.3f s (%i subints.)" % (args.duration, dur))
-        print("Transform Length: %i" % LFFT)
+        print(f"Offset: {args.skip:.3f} s ({skip} subints.)")
+        print(f"Duration: {args.duration:.3f} s ({dur} subints.)")
+        print(f"Transform Length: {LFFT}")
         
         ## Prepare the HDF5 file
         if f is None:
@@ -151,11 +151,11 @@ def main(args):
             outname = '%s.hdf5' % outname
             
             if os.path.exists(outname):
-                yn = input("WARNING: '%s' exists, overwrite? [Y/n] " % outname)
+                yn = input(f"WARNING: '{outname}' exists, overwrite? [Y/n] " % outname)
                 if yn not in ('n', 'N'):
                     os.unlink(outname)
                 else:
-                    raise RuntimeError("Output file '%s' already exists" % outname)
+                    raise RuntimeError(f"Output file '{outname}' already exists" % outname)
                     
             ### Populate the groups
             f = hdfData.create_new_file(outname)
@@ -169,17 +169,17 @@ def main(args):
             ds['obs1'] = hdfData.get_observation_set(f, 1)
             ds['obs1-time'] = hdfData.get_time(f, 1)
             for t in (1, 2):
-                ds['obs1-freq%i' % (t,)] = hdfData.get_data_set(f, 1, t, 'freq')
+                ds[f"obs1-freq{t}"] = hdfData.get_data_set(f, 1, t, 'freq')
                 for p in data_products:
-                    ds["obs1-%s%i" % (p, t)] = hdfData.get_data_set(f, 1, t, p)
+                    ds[f"obs1-{p}{t}"] = hdfData.get_data_set(f, 1, t, p)
                     
             ### Add in mask information
             for t in (1, 2):
-                tuningInfo = ds["obs1"].get("Tuning%i" % t, None)
+                tuningInfo = ds["obs1"].get(f"Tuning{t}", None)
                 maskInfo = tuningInfo.create_group("Mask")
                 for p in data_products:
-                    maskInfo.create_dataset(p, ds["obs1-%s%i" % (p, t)].shape, 'bool')
-                    ds["obs1-mask-%s%i" % (p, t)] = maskInfo.get(p, None)
+                    maskInfo.create_dataset(p, ds[f"obs1-{p}{t}"].shape, 'bool')
+                    ds[f"obs1-mask-{p}{t}"] = maskInfo.get(p, None)
                     
             ### Target metadata
             ds['obs1'].attrs['ObservationName'] = sourceName
@@ -204,7 +204,7 @@ def main(args):
         freq = hdulist[1].data[0][12]*1e6		# MHz -> Hz
         ds['obs1'].attrs['RBW'] = freq[1]-freq[0]
         ds['obs1'].attrs['RBW_Units'] = 'Hz'
-        ds['obs1-freq%i' % (tuning,)][:] = freq
+        ds[f"obs1-freq{tuning}"][:] = freq
         
         ## Read in the data and apply what ever scaling is needed
         for i in range(skip, skip+dur):
@@ -238,8 +238,8 @@ def main(args):
                 if c == 0:
                     ds['obs1-time'][k] = (tStartI, tStartF + t)
                 for l,p in enumerate(data_products):
-                    ds['obs1-%s%i' % (p,tuning)][k,:] = d[l,:]
-                    ds['obs1-mask-%s%i' % (p,tuning)][k,:] = msk
+                    ds[f"obs1-{p}{tuning}"][k,:] = d[l,:]
+                    ds[f"obs1-mask-{p}{tuning}"][k,:] = msk
                     
             ### Update the progress bar and remaining time estimate
             pbar.inc()
