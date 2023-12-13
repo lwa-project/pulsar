@@ -779,7 +779,8 @@ parallel.  See the individual functions for more details.");
 
 static int helper_exec(PyObject *module) {
 		import_array();
-		
+		PyObject *all;
+	
 		// Version information
 		PyModule_AddObject(module, "__version__", PyUnicode_FromString("0.1"));
 		
