@@ -149,7 +149,7 @@ def main(args):
     mjd_day = int(mjd)
     mjd_sec = (mjd-mjd_day)*86400
     if args.output is None:
-        args.output = f"drx_{mjd_date:05d}_{args.source.replace(' ', '')}"
+        args.output = f"drx_{mjd_day:05d}_{args.source.replace(' ', '')}"
         
     ## Tuning frequencies
     central_freq1 = idf.get_info('freq1')
