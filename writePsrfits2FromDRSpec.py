@@ -92,7 +92,7 @@ def main(args):
     mjd_day = int(mjd)
     mjd_sec = (mjd-mjd_day)*86400
     if args.output is None:
-        args.output = f"drx_{mjd_daty:05d}_{args.source.replace(' ', '')}"
+        args.output = f"drx_{mjd_day:05d}_{args.source.replace(' ', '')}"
         
     # File summary
     print(f"Input Filename: {args.filename}")
