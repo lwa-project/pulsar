@@ -25,15 +25,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ['3.8', '3.10', '3.12']
-        include:
-          - os: ubuntu-20.04
-            python-version: '3.6'
-          - os: macos-latest
-            python-version: '3.6'
       fail-fast: false
     steps:
         - name: "Software Install - Ubuntu"
-          if: ${{ matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-20.04' }}
+          if: ${{ matrix.os == 'ubuntu-latest' }}
           run: |
             sudo apt-get install -y \
               build-essential \
@@ -67,7 +62,7 @@ jobs:
         - name: "Software Install - Python"
           run: |
             pip install numpy
-            pip install attrdict "importlib-metadata; python_version < '3.8'" "healpy < 1.14.0; python_version <= '2.7'"
+            pip install attrdict
             pip install -r requirements.txt
             pip install pylint
         - name: Build
@@ -82,7 +77,6 @@ jobs:
             cp ./.libs/*[sd][oy]* ./
             sudo make install
         - name: Test
-          continue-on-error: ${{ matrix.python-version == '2.7' }}
           run: |
             cd tests
             python -m unittest discover
