@@ -61,12 +61,12 @@ plotSinglePulse.py
 ------------------
 Graphical interface for working with .singlepulse search results from PRESTO.
 
-dedispersion.c/fft.c/kurtosis.c/psr.c/quantize.c/reduce.c/utils.c
------------------------------------------------------------------
+dedispersion.cpp/fft.cpp/kurtosis.cpp/psr.cpp/quantize.cpp/reduce.cpp/utils.cpp
+-------------------------------------------------------------------------------
 Compiled Python/NumPy extension used by the scripts to speed up processing.
 
-helper.c
---------
+helper.cpp
+----------
 Compiled Python/NumPy extension used by the script to speed up display.
 
 Makefile
