@@ -270,7 +270,7 @@ def main(args):
         spectraFreq2 = numpy.fft.fftshift( numpy.fft.fftfreq(LFFT, d=1.0/srate) ) + central_freq2
         
         # File summary
-        print(f"Input Filename: {filename} ({c+1} of {len(args.filename)}")
+        print(f"Input Filename: {filename} ({c+1} of {len(args.filename)})")
         print(f"Date of First Frame: {str(beginDate)} (MJD={mjd:f})")
         print(f"Tune/Pols: {tunepol}")
         print(f"Tunings: {central_freq1:.1f} Hz, {central_freq2:.1f} Hz")
