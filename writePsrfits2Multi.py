@@ -268,7 +268,7 @@ def main(args):
         print(f"Sample Rate: {srate} Hz")
         print(f"Sample Time: {LFFT / srate:f} s")
         print(f"Sub-block Time: {LFFT / srate * nsblk:f} s")
-        print(f"Frames: {nFramesFile} ({4096.0*nFramesFile / srate / tunepol:.3f} s)"
+        print(f"Frames: {nFramesFile} ({4096.0*nFramesFile / srate / tunepol:.3f} s)")
         print("---")
         print(f"Using FFTW Wisdom? {useWisdom}")
         
