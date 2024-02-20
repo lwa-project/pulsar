@@ -11,7 +11,7 @@ jobs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - id: skip_check
-        uses: fkirc/skip-duplicate-actions@v3.4.1
+        uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'same_content'
           paths_ignore: '["README.md"]'
@@ -55,7 +55,7 @@ jobs:
               hdf5 \
               pkg-config \
               swig
-        - uses: actions/setup-python@v2
+        - uses: actions/setup-python@v5.0.0
           with:
             python-version: ${{ matrix.python-version }}
         - uses: actions/checkout@v2
