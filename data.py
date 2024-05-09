@@ -8,7 +8,7 @@ from urllib import request as urlrequest
 
 
 # URL to download
-MODULE_URL = 'https://raw.githubusercontent.com/lwa-project/commissioning/master/DRX/HDF5/data.py'
+MODULE_URL = 'https://raw.githubusercontent.com/lwa-project/commissioning/main/DRX/HDF5/data.py'
 
 # Where it lives
 MODULE_PATH = os.path.dirname(os.path.abspath(__file__))
