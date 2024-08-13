@@ -27,7 +27,7 @@ make
 git clone https://github.com/lwa-project/psrfits_utils.git
 git checkout d26cac580477a2f2148e1a69fe70178747bf7ed1
 ./prepare
-PYTHON_VERSION="3.8" ./configure
+PYTHON_VERSION="3.10" ./configure
 make
 sudo make install
 ```
@@ -35,7 +35,7 @@ sudo make install
 ## EPSIC
 ```
 git clone https://github.com/straten/epsic.git
-git checkout 5315cc634f6539ea0a34e403e492472b97e0f086
+git checkout 3972cfa1074749727af80409b5ea6994e15a7861
 cd src/
 ./bootstrap
 ./configure
@@ -49,6 +49,7 @@ https://www.atnf.csiro.au/research/pulsar/psrcat/
 wget https://www.atnf.csiro.au/research/pulsar/psrcat/downloads/psrcat_pkg.tar.gz
 tar xzvf psrcat_pkg.tar.gz
 mv psrcat_tar psrcat
+chmod +x makeit
 ./makeit
 sudo cp psrcat /usr/local/bin/
 ```
@@ -57,10 +58,15 @@ sudo cp psrcat /usr/local/bin/
 http://psrchive.sourceforge.net/
 ```
 git clone git://git.code.sf.net/p/psrchive/code
-git checkout a1709aab0948935dcaf5305c0aefd129cf954f8b
+git checkout caa9618401000d3a1e1eab434faed0e762d75cd0
 unset TEMPO2
 ./bootstrap
-PYTHON=/usr/bin/python3.8 ./configure --enable-shared --disable-tempo2 --with-psrcat=/usr/local/psrcat/
+cd Util/epsic
+git checkout 3972cfa1074749727af80409b5ea6994e15a7861
+cd src
+./bootstrap
+cd ../../..
+PYTHON=/usr/bin/python3.10 ./configure --enable-shared --disable-tempo2 --with-psrcat=/usr/local/psrcat/
 make
 sudo make install
 ```
@@ -69,11 +75,16 @@ sudo make install
 http://dspsr.sourceforge.net/
 ```
 git clone git://git.code.sf.net/p/dspsr/code
-git checkout 6c762e6fc6bc2a1595000f34bcfc0ca0c43e9954
+git checkout 411c16da1ea5bdec081dcf903100a100be208500
 unset TEMPO2
 sed -e 's/mwa/lwa mwa/g' -i ./config/backends.default 
 ./bootstrap
-PYTHON=/usr/bin/python3.8 ./configure --enable-shared --with-cuda-dir=/usr/local/cuda --with-cuda-include-dir=/usr/local/cuda/include --with-cuda-lib-dir=/usr/local/cuda/lib64
+PYTHON=/usr/bin/python3.10 ./configure --enable-shared --with-cuda-dir=/usr/local/cuda --with-cuda-include-dir=/usr/local/cuda/include --with-cuda-lib-dir=/usr/local/cuda/lib64
+make
+cd python
+make clean
+make
+cd ..
 make
 sudo make install
 ```
