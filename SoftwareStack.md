@@ -30,6 +30,8 @@ git checkout d26cac580477a2f2148e1a69fe70178747bf7ed1
 PYTHON_VERSION="3.10" ./configure
 make
 sudo make install
+sudo mv /usr/local/local/lib/python3.10/dist-packages/psrfits_utils /usr/local/lib/python3.10/dist-packages/
+sudo rm -rf /usr/local/local
 ```
 
 ## EPSIC
