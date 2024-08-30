@@ -77,7 +77,7 @@ sudo make install
 http://dspsr.sourceforge.net/
 ```
 git clone git://git.code.sf.net/p/dspsr/code
-git checkout 411c16da1ea5bdec081dcf903100a100be208500
+git checkout 78837839501bec6f5af3cfd8e0b8b19c1c84e8e3
 unset TEMPO2
 sed -e 's/mwa/lwa mwa/g' -i ./config/backends.default 
 ./bootstrap
