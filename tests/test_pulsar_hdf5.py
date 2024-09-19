@@ -7,7 +7,6 @@ import os
 import re
 import sys
 import glob
-import numpy
 import subprocess
 from urllib.request import Request, urlopen
 
