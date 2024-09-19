@@ -34,8 +34,6 @@ __author__   = "Jayce Dowell"
 
 _PYLINT_IGNORES = [('no-member',    "Instance of 'HDUList'"),
                    ('no-member',    "Instance of 'Group' has no"),
-                   ('no-member',    "Module 'wx' has no"),
-                   ('no-member',    "Module 'wx.html' has no"),
                    ('import-error', "Unable to import 'presto")]
 
 
@@ -53,7 +51,7 @@ class scripts_tests(unittest.TestCase):
             with self.subTest(script=name):
                 pylint_output = StringIO()
                 reporter = JSONReporter(pylint_output)
-                pylint_args = [script, "-E", "--extension-pkg-allow-list=_psr,scipy.special", "--init-hook='import sys; sys.path=[%s]; sys.path.insert(0, \"%s\")'" % (",".join(['"%s"' % p for p in sys.path]), os.path.dirname(MODULE_BUILD))]
+                pylint_args = [script, "-E", "--extension-pkg-allow-list=_psr,scipy.special,wx,wx.html,astropy.units", "--init-hook='import sys; sys.path=[%s]; sys.path.insert(0, \"%s\")'" % (",".join(['"%s"' % p for p in sys.path]), os.path.dirname(MODULE_BUILD))]
                 Run(pylint_args, reporter=reporter, exit=False)
                 results = json.loads(pylint_output.getvalue())
                 
