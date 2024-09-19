@@ -32,10 +32,11 @@ __version__  = "0.2"
 __author__   = "Jayce Dowell"
 
 
-_PYLINT_IGNORES = [('no-member', "Instance of 'HDUList'"),
-                   ('no-member', "Instance of 'Group' has no"),
-                   ('no-member', "Module 'wx' has no"),
-                   ('no-member', "Module 'wx.html' has no")]
+_PYLINT_IGNORES = [('no-member',    "Instance of 'HDUList'"),
+                   ('no-member',    "Instance of 'Group' has no"),
+                   ('no-member',    "Module 'wx' has no"),
+                   ('no-member',    "Module 'wx.html' has no"),
+                   ('import-error', "Unable to import 'presto")]
 
 
 @unittest.skipUnless(run_scripts_tests, "requires the 'pylint' module")
