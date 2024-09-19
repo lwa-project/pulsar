@@ -253,7 +253,7 @@ def main(args):
             # Otherwise, make sure we are on track
             try:
                 timetag = timetag - tNomX # T_NOM has been subtracted from ttLast # pylint: disable=used-before-assignment
-                if timetag != ttLast + ttSkip:
+                if timetag != ttLast + ttSkip:      # pylint: disable=used-before-assignment
                     missing = (timetag - ttLast - ttSkip) / float(ttSkip)
                     if int(missing) == missing and missing < 50:
                         ## This is kind of black magic down here
