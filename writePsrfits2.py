@@ -296,7 +296,7 @@ def main(args):
         
         ## FFT
         try:
-            rawSpectra = PulsarEngineRaw(rawdata, LFFT, rawSpectra)
+            rawSpectra = PulsarEngineRaw(rawdata, LFFT, rawSpectra)     # pylint: disable=used-before-assignment
         except NameError:
             rawSpectra = PulsarEngineRaw(rawdata, LFFT)
             
@@ -309,13 +309,13 @@ def main(args):
         
         ## Detect power
         try:
-            redData = reduceEngine(rawSpectra, redData)
+            redData = reduceEngine(rawSpectra, redData)     # pylint: disable=used-before-assignment
         except NameError:
             redData = reduceEngine(rawSpectra)
             
         ## Optimal data scaling
         try:
-            bzero, bscale, bdata = OptimizeDataLevels(redData, LFFT, bzero, bscale, bdata)
+            bzero, bscale, bdata = OptimizeDataLevels(redData, LFFT, bzero, bscale, bdata)      # pylint: disable=used-before-assignment
         except NameError:
             bzero, bscale, bdata = OptimizeDataLevels(redData, LFFT)
             

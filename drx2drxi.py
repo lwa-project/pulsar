@@ -252,7 +252,7 @@ def main(args):
         else:
             # Otherwise, make sure we are on track
             try:
-                timetag = timetag - tNomX # T_NOM has been subtracted from ttLast
+                timetag = timetag - tNomX # T_NOM has been subtracted from ttLast # pylint: disable=used-before-assignment
                 if timetag != ttLast + ttSkip:
                     missing = (timetag - ttLast - ttSkip) / float(ttSkip)
                     if int(missing) == missing and missing < 50:
@@ -291,7 +291,7 @@ def main(args):
             ## Check for timetag problems
             if tuning == 1:
                 try:
-                    ttDiff = timetag - ttLast
+                    ttDiff = timetag - ttLast       # pylint: disable=used-before-assignment
                     if ttDiff != ttSkip:
                         raise RuntimeError(f"timetag skip at {c}, {ttDiff} != {ttSkip} ({1.0*ttDiff/ttSkip:.1f} frames)")
                 except NameError:

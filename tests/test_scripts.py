@@ -5,8 +5,8 @@ Unit tests for the various pulsar scripts.
 import unittest
 import glob
 import sys
-import re
 import os
+import json
 
 currentDir = os.path.abspath(os.getcwd())
 if os.path.exists(os.path.join(currentDir, 'test_scripts.py')):
@@ -21,61 +21,21 @@ try:
     from pylint.reporters.json_reporter import JSONReporter
     if MODULE_BUILD is not None:
         run_scripts_tests = True
+        
+        # Pre-seed data.py
+        os.system("%s data.py" % sys.executable)
 except ImportError:
     pass
 
 
-__version__  = "0.1"
+__version__  = "0.2"
 __author__   = "Jayce Dowell"
 
 
-_LINT_RE = re.compile('(?P<module>.*?):(?P<line>\d+): (error )?[\[\(](?P<type>.*?)[\]\)] (?P<info>.*)')
-
-
-_PYLINT_IGNORES = [ ]
-
-
-_SAFE_TO_IGNORE = ["Possible",
-                   "Module 'numpy",
-                   "Module 'ephem",
-                   "Module 'wx",
-                   "Unable to import 'wx",
-                   "Unable to import 'presto",
-                   "No name 'erf' in module 'scipy.special'",
-                   "Instance of 'HDUList' has no 'header' member",
-                   "Instance of 'HDUList' has no 'data' member",
-                   "Instance of 'Group' has no 'shape' member",
-                   "Undefined variable 'BindToCore",
-                   "Undefined variable 'BindOpenMPToCores",
-                   "Undefined variable 'PulsarEngineRaw",
-                   "Undefined variable 'PulsarEngineRawWindow",
-                   "Undefined variable 'PhaseRotator",
-                   "Undefined variable 'ComputeSKMask",
-                   "Undefined variable 'ComputePseudoSKMask",
-                   "Undefined variable 'MultiChannelCD",
-                   "Undefined variable 'CombineToIntensity",
-                   "Undefined variable 'CombineToLinear",
-                   "Undefined variable 'CombineToCircular",
-                   "Undefined variable 'CombineToStokes",
-                   "Undefined variable 'OptimizeDataLevels8Bit",
-                   "Undefined variable 'OptimizeDataLevels4Bit",
-                   "Undefined variable 'useWisdom",
-                   "Class 'int' has no 'from_bytes' member",
-                   "Module 'astropy.units' has no 'hourangle' member",
-                   "Module 'astropy.units' has no 'degree' member",
-                   "Instance of 'Empty' has no 'decode' member"]
-
-
-def _get_context(filename, line, before=0, after=0):
-    to_save = range(line-1-before, line-1+after+1)
-    context = []
-    with open(filename, 'r') as fh:
-        i = 0
-        for line in fh:
-            if i in to_save:
-                context.append(line)
-            i += 1
-    return context
+_PYLINT_IGNORES = [('no-member', "Instance of 'HDUList'"),
+                   ('no-member', "Instance of 'Group' has no"),
+                   ('no-member', "Module 'wx' has no"),
+                   ('no-member', "Module 'wx.html' has no")]
 
 
 @unittest.skipUnless(run_scripts_tests, "requires the 'pylint' module")
@@ -85,7 +45,7 @@ class scripts_tests(unittest.TestCase):
     def test_scripts(self):
         """Static analysis of the LSL scripts."""
         
-        _SCRIPTS = glob.glob(os.path.join(MODULE_BUILD, '..', 'scripts', '*.py'))
+        _SCRIPTS = glob.glob(os.path.join(MODULE_BUILD, '*.py'))
         _SCRIPTS.sort()
         for script in _SCRIPTS:
             name = script.rsplit('scripts'+os.path.sep)[-1]
