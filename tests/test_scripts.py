@@ -48,6 +48,7 @@ class scripts_tests(unittest.TestCase):
         """Static analysis of the pulsar scripts."""
         
         _SCRIPTS = glob.glob(os.path.join(MODULE_BUILD, '*.py'))
+        _SCRIPTS = list(filter(lambda x: x.find('setup.py') == -1, _SCRIPTS))
         _SCRIPTS.sort()
         for script in _SCRIPTS:
             name = script.rsplit('scripts'+os.path.sep)[-1]
