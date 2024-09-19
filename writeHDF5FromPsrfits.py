@@ -242,7 +242,7 @@ def main(args):
                     ds[f"obs1-mask-{p}{tuning}"][k,:] = msk
                     
             ### Update the progress bar and remaining time estimate
-            pbar.inc()
+            pbar.inc()      # pylint: disable=used-before-assignment
             sys.stdout.write('%s\r' % (pbar.show()))
             sys.stdout.flush()
             
