@@ -9,6 +9,7 @@ import sys
 import glob
 import numpy
 import subprocess
+from urllib.request import Request, urlopen
 
 
 _URL = 'https://lda10g.alliance.unm.edu/tutorial/UnknownPulsar/056227_000024985_DRX.dat'
@@ -33,10 +34,19 @@ class pulsar_tests(unittest.TestCase):
         
         # Raw data
         if not os.path.exists(_FILENAME):
-            subprocess.check_call(['curl', _URL, 
-                                   '--range', '4128-%i' % (int(_SIZE_MB)*1024*1024), 
-                                   '-o', _FILENAME, '--create-dirs'])
+            os.makedirs(os.path.dirname(_FILENAME), exist_ok=True)
             
+            req = Request(_URL)
+            req.add_header("Range", f"bytes=4128-{_SIZE_MB*1024*1024}")
+            with open(_FILENAME, 'wb') as fh:
+                with urlopen(req) as uh:
+                    while True:
+                        data = uh.read(16*1024*1024)
+                        if data:
+                            fh.write(data)
+                        else:
+                            break
+                            
     def tearDown(self):
         for filename in glob.glob('*.fits'):
             try:

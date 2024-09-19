@@ -9,6 +9,7 @@ import sys
 import glob
 import numpy
 import subprocess
+from urllib.request import Request, urlopen
 
 
 _URL = 'https://lda10g.alliance.unm.edu/tutorial/B0329+54/056770_000044687'
@@ -33,14 +34,28 @@ class pulsar_hdf5_tests(unittest.TestCase):
         
         # Raw data
         if not os.path.exists(_FILENAME):
-            subprocess.check_call(['curl', _URL, 
-                                   '--range', '0-%i' % (int(_SIZE_MB)*1024*1024), 
-                                   '-o', os.path.join(os.path.dirname(_FILENAME), 'drspec.dat'),
-                                   '--create-dirs'])
-            subprocess.check_call(['curl',
-                                   'https://raw.githubusercontent.com/lwa-project/commissioning/main/DRX/HDF5/drspec2hdf.py',
-                                   '-o', os.path.join(os.path.dirname(_FILENAME), 'drspec2hdf.py'),
-                                   '--create-dirs'])
+            os.makedirs(os.path.dirname(_FILENAME), exist_ok=True)
+            
+            req = Request(_URL)
+            req.add_header("Range", f"bytes=0-{_SIZE_MB*1024*1024}")
+            with open(os.path.join(os.path.dirname(_FILENAME), 'drspec.dat'), 'wb') as fh:
+                with urlopen(req) as uh:
+                    while True:
+                        data = uh.read(16*1024*1024)
+                        if data:
+                            fh.write(data)
+                        else:
+                            break
+                            
+            req = Request('https://raw.githubusercontent.com/lwa-project/commissioning/main/DRX/HDF5/drspec2hdf.py')
+            with open(os.path.join(os.path.dirname(_FILENAME), 'drspec2hdf.py'), 'wb') as fh:
+                with urlopen(req) as uh:
+                    while True:
+                        data = uh.read(16*1024*1024)
+                        if data:
+                            fh.write(data)
+                        else:
+                            break
             subprocess.check_call(['cp', '../data.py', os.path.join(os.path.dirname(_FILENAME), 'data.py')])
             subprocess.check_call([sys.executable, 'drspec2hdf.py', 'drspec.dat'],
                                    cwd=os.path.dirname(_FILENAME))
