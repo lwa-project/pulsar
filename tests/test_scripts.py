@@ -43,7 +43,7 @@ class scripts_tests(unittest.TestCase):
     """A unittest.TestCase collection of unit tests for the LSL scripts."""
     
     def test_scripts(self):
-        """Static analysis of the LSL scripts."""
+        """Static analysis of the pulsar scripts."""
         
         _SCRIPTS = glob.glob(os.path.join(MODULE_BUILD, '*.py'))
         _SCRIPTS.sort()
