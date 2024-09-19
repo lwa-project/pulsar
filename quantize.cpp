@@ -1,5 +1,6 @@
 #include "Python.h"
 #include <cmath>
+#include <cstdint>
 
 #ifdef _OPENMP
 	#include <omp.h>

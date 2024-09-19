@@ -1,9 +1,10 @@
 #include "Python.h"
-#include <math.h>
-#include <stdio.h>
-#include <complex.h>
+#include <cmath>
+#include <complex>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <fftw3.h>
-#include <stdlib.h>
 #include <pthread.h>
 
 #ifdef _OPENMP

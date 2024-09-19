@@ -1,6 +1,7 @@
 #include "Python.h"
 #include <cmath>
 #include <complex>
+#include <cstdint>
 #include <fftw3.h>
 #include <pthread.h>
 
