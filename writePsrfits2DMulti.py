@@ -153,7 +153,7 @@ def main(args):
         
         # Validate
         try:
-            if srate != srateOld:
+            if srate != srateOld:       # pylint: disable=used-before-assignment
                 raise RuntimeError("Sample rate change detected in this set of files")
         except NameError:
             srateOld = srate
