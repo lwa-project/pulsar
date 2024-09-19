@@ -32,7 +32,7 @@ __author__   = "Jayce Dowell"
 _LINT_RE = re.compile('(?P<module>.*?):(?P<line>\d+): (error )?[\[\(](?P<type>.*?)[\]\)] (?P<info>.*)')
 
 
-_PYLINT_IGNORES = []
+_PYLINT_IGNORES = [ ]
 
 
 _SAFE_TO_IGNORE = ["Possible",
