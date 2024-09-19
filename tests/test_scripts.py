@@ -23,7 +23,7 @@ try:
         run_scripts_tests = True
         
         # Pre-seed data.py
-        os.system("%s data.py" % sys.executable)
+        os.system("%s ../data.py" % sys.executable)
 except ImportError:
     pass
 
