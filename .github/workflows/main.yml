@@ -50,6 +50,7 @@ jobs:
             brew install \
               autoconf \
               automake \
+              cfitsio \
               fftw \
               hdf5 \
               libtool \
@@ -61,6 +62,8 @@ jobs:
         - uses: actions/checkout@v2
         - name: "Software Install - Python"
           run: |
+            export CFLAGS=`pkg-config --cflags cfitsio`
+            export LDFLAGS=`pkg-config --libs cfitsio`
             pip install numpy
             pip install attrdict
             pip install -r requirements.txt
@@ -71,6 +74,8 @@ jobs:
           run: |
             git clone https://github.com/lwa-project/psrfits_utils.git
             cd psrfits_utils
+            export CFLAGS=`pkg-config --cflags cfitsio`
+            export LDFLAGS=`pkg-config --libs cfitsio`
             ./prepare
             ./configure
             make all
