@@ -52,6 +52,7 @@ jobs:
               automake \
               fftw \
               hdf5 \
+              libtool \
               pkg-config \
               swig
         - uses: actions/setup-python@v5.0.0
