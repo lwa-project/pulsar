@@ -77,10 +77,8 @@ jobs:
           run: |
             git clone https://github.com/lwa-project/psrfits_utils.git
             cd psrfits_utils
-            export CFLAGS=`pkg-config --cflags cfitsio`
-            export LDFLAGS=`pkg-config --libs cfitsio`
             ./prepare
-            ./configure
+            CFLAGS=`pkg-config --cflags cfitsio` LDFLAGS=`pkg-config --libs cfitsio` ./configure
             make all
             cp ./.libs/*[sd][oy]* ./
             sudo make install
