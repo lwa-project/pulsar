@@ -50,7 +50,6 @@ jobs:
             brew install \
               autoconf \
               automake \
-              cfitsio \
               fftw \
               hdf5 \
               libtool \
@@ -70,6 +69,10 @@ jobs:
             pip install pylint
         - name: Build
           run: make
+        - name: "Software Install - MacOS, part 2"
+          if: ${{ matrix.os == 'macos-latest' }}
+          run: |
+            brew install cfitsio
         - name: "Build and Install psrfits_utils"
           run: |
             git clone https://github.com/lwa-project/psrfits_utils.git
