@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Given a DR spectrometer file, create one of more PSRFITS file(s).
+Given a raw voltage beam file from OVRO-LWA, create a PSRFITS file.
 """
 
 import os
@@ -136,7 +136,7 @@ def main(args):
     print(f"Input Filename: {args.filename}")
     print(f"Date of First Frame: {str(beginDate)} (MJD={mjd:f})")
     print(f"Beam: {beam}")
-    print(f"Tunings: {central_freq1:.1f} Hz, {central_freq2:.1f} Hz")
+    print(f"Tuning: {central_freq1:.1f} Hz")
     print(f"Sample Rate: {srate} Hz")
     print(f"Sample Time: {tInt:f} s")
     print(f"Sub-block Time: {tInt * nsblk:f} s")
@@ -188,7 +188,7 @@ def main(args):
         pfo.hdr.dt = tInt
         
         ## Metadata about the observation/observatory/pulsar
-        pfo.hdr.observer = "wP2FromIBeam1.py"
+        pfo.hdr.observer = "wP2FromIBeam.py"
         pfo.hdr.source = args.source
         pfo.hdr.fd_hand = 1
         pfo.hdr.nbits = 4 if args.four_bit_data else 8
@@ -198,8 +198,8 @@ def main(args):
         pfo.hdr.npol = nPols
         pfo.hdr.summed_polns = 1 if (not args.no_summing) else 0
         pfo.hdr.obs_mode = "SEARCH"
-        pfo.hdr.telescope = "LWA"
-        pfo.hdr.frontend = "LWA"
+        pfo.hdr.telescope = "OVRO-LWA"
+        pfo.hdr.frontend = "OVRO-LWA"
         pfo.hdr.backend = "RawVBeam"
         pfo.hdr.project_id = "Pulsar"
         pfo.hdr.ra_str = args.ra
@@ -338,7 +338,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='read in DR spectrometer files and create one or more PSRFITS file(s)', 
+        description='read in raw voltage beam file from OVRO-LWA create a PSRFITS file', 
         epilog='NOTE:  If a source name is provided and the RA or declination is not, the script will attempt to determine these values.', 
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
         )
