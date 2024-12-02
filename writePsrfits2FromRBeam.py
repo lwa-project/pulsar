@@ -22,12 +22,12 @@ from lsl.misc import parser as aph
 from _psr import *
 
 
-def read_frame_ibeam1(fh):
-    hdr = fh.read(15)
-    if len(hdr) < 15:
+def read_frame_rbeam1(fh):
+    hdr = fh.read(16)
+    if len(hdr) < 16:
         return (None, None)
         
-    hdr = struct.unpack('>BBBBBHQ', hdr)
+    hdr = struct.unpack('>BBHBBHQ', hdr)
     nbeam = hdr[3]
     nchan = hdr[2]
     data_size = nbeam*nchan*2*8
@@ -40,11 +40,11 @@ def read_frame_ibeam1(fh):
     return (hdr, data)
 
 
-def read_ibeam1(fh, tInt):
+def read_rbeam1(fh, tInt):
     nFrame = int(round(tInt * (196e6 / (2*4096))))
     data = []
     for i in range(nFrame):
-        _hdr, _data = read_frame_ibeam1(fh)
+        _hdr, _data = read_frame_rbeam1(fh)
         try:
             hdr
         except NameError:
@@ -97,7 +97,7 @@ def main(args):
     
     # Open
     fh = open(args.filename, 'rb')
-    hdr, _ = read_frame_ibeam1(fh)
+    hdr, _ = read_frame_rbeam1(fh)
     frameSize = fh.tell()
     fh.seek(0)
     nFramesFile = os.path.getsize(args.filename) // frameSize
@@ -188,7 +188,7 @@ def main(args):
         pfo.hdr.dt = tInt
         
         ## Metadata about the observation/observatory/pulsar
-        pfo.hdr.observer = "wP2FromIBeam.py"
+        pfo.hdr.observer = "wP2FromRBeam.py"
         pfo.hdr.source = args.source
         pfo.hdr.fd_hand = 1
         pfo.hdr.nbits = 4 if args.four_bit_data else 8
@@ -268,7 +268,7 @@ def main(args):
         ## Read in the data
         spectra *= 0.0
         try:
-            readT, t, data = read_ibeam1(fh, chunkTime)
+            readT, t, data = read_rbeam1(fh, chunkTime)
             spectra[0,:] = data[:,0,:].ravel()
             spectra[1,:] = data[:,1,:].ravel()
             siCount += 1
