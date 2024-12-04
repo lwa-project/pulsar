@@ -248,12 +248,12 @@ def main(args):
     # Calculate the SK limites for weighting
     if (not args.no_sk_flagging) and isLinear:
         skN = int(tInt*srate / LFFT)
-        skLimits = kurtosis.get_limits(4.0, M=1.0*nsblk, N=1.0*skN)
+        skLimits = kurtosis.get_limits(4.0, 1.0*nsblk)
         
-        GenerateMask = lambda x: ComputePseudoSKMask(x, LFFT, skN, skLimits[0], skLimits[1])
+        GenerateMask = lambda x: ComputeSKMask(x, skLimits[0], skLimits[1])
     else:
         def GenerateMask(x):
-            flag = numpy.ones((2, LFFT), dtype=numpy.float32)
+            flag = numpy.ones((4, LFFT), dtype=numpy.float32)
             return flag
             
     # Create the progress bar so that we can keep up with the conversion.
