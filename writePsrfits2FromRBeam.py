@@ -250,7 +250,8 @@ def main(args):
         skN = int(tInt*srate / LFFT)
         skLimits = kurtosis.get_limits(4.0, 1.0*nsblk)
         
-        GenerateMask = lambda x: ComputeSKMask(x, skLimits[0], skLimits[1])
+        
+        GenerateMask = lambda x: ComputeSKMask(x.reshape(-1,chunkSize,LFFT).transpose(0,2,1), skLimits[0], skLimits[1])
     else:
         def GenerateMask(x):
             flag = numpy.ones((4, LFFT), dtype=numpy.float32)
