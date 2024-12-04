@@ -249,7 +249,7 @@ def main(args):
     if (not args.no_sk_flagging) and isLinear:
         skLimits = kurtosis.get_limits(4.0, M=1.0*nsblk, N=1.0)
         
-        GenerateMask = lambda x: ComputePseudoSKMask(x, LFFT, skN, skLimits[0], skLimits[1])
+        GenerateMask = lambda x: ComputePseudoSKMask(x, LFFT, 1, skLimits[0], skLimits[1])
     else:
         def GenerateMask(x):
             flag = numpy.ones((2, LFFT), dtype=numpy.float32)
