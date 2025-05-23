@@ -66,8 +66,9 @@ def main(args):
     idf = DRSpecFile(args.filename)
     
     # Offset, if needed
+    o = 0
     if args.skip != 0.0:
-        idf.offset(args.skip)
+        o = idf.offset(args.skip)
         
     # Load in basic information about the data
     nFramesFile = idf.get_info('nframe')
