@@ -64,10 +64,14 @@ def main(args):
     
     # Open
     idf = DRSpecFile(args.filename)
+    
+    # Offset, if needed
+    if args.skip != 0.0:
+        idf.offset(args.skip)
+        
+    # Load in basic information about the data
     nFramesFile = idf.get_info('nframe')
     LFFT = idf.get_info('LFFT')
-    
-    # Load in basic information about the data
     srate = idf.get_info('sample_rate')
     beam = idf.get_info('beam')
     central_freq1 = idf.get_info('freq1')
@@ -75,12 +79,6 @@ def main(args):
     data_products = idf.get_info('data_products')
     isLinear = ('XX' in data_products) or ('YY' in data_products)
     tInt = idf.get_info('tint')
-    
-    # Offset, if needed
-    o = 0
-    if args.skip != 0.0:
-       o = idf.offset(args.skip)
-    nFramesFile -= int(round(o/tInt))
     
     # Sub-integration block size
     nsblk = args.nsblk

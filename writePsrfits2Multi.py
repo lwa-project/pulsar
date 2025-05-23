@@ -130,6 +130,10 @@ def main(args):
     nFrames = []
     for filename in args.filename:
         idf = DRXFile(filename)
+        
+        # Offset, if needed
+        if args.skip != 0.0:
+            idf.offset(args.skip)
             
         # Find out how many frame sets are in each file
         srate = idf.get_info('sample_rate')
@@ -137,11 +141,6 @@ def main(args):
         tunepol = beampols
         nFramesFile = idf.get_info('nframe')
         
-        # Offset, if needed
-        o = 0
-        if args.skip != 0.0:
-            o = idf.offset(args.skip)
-        nFramesFile -= int(o*srate/4096)*tunepol
         nFrames.append( nFramesFile // tunepol )
         
         # Get the start time of the file
@@ -229,18 +228,17 @@ def main(args):
         
     for c,filename,frameOffset,sampleOffset,tickOffset in zip(range(len(args.filename)), args.filename, frameOffsets, sampleOffsets, tickOffsets):
         idf = DRXFile(filename)
+        
+        # Offset, if needed
+        o = 0
+        if args.skip != 0.0:
+            o = idf.offset(args.skip)
             
         # Find out how many frame sets are in each file
         srate = idf.get_info('sample_rate')
         beampols = idf.get_info('nbeampol')
         tunepol = beampols
         nFramesFile = idf.get_info('nframe')
-        
-        # Offset, if needed
-        o = 0
-        if args.skip != 0.0:
-            o = idf.offset(args.skip)
-        nFramesFile -= int(o*srate/srate)*tunepol
         
         # Additional seek for timetag alignment across the files
         o += idf.offset(frameOffset*4096/srate)

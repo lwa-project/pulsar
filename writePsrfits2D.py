@@ -130,17 +130,15 @@ def main(args):
     # Open
     idf = DRXFile(args.filename)
     
+    # Offset, if needed
+    if args.skip != 0.0:
+        idf.offset(args.skip)
+        
     # Load in basic information about the data
     nFramesFile = idf.get_info('nframe')
     srate = idf.get_info('sample_rate')
     beampols = idf.get_info('nbeampol')
     tunepol = beampols
-    
-    # Offset, if needed
-    o = 0
-    if args.skip != 0.0:
-        o = idf.offset(args.skip)
-    nFramesFile -= int(o*srate/4096)*tunepol
     
     ## Date
     beginDate = idf.get_info('start_time')

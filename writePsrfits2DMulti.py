@@ -233,18 +233,17 @@ def main(args):
         
     for c,filename,frameOffset,sampleOffset,tickOffset in zip(range(len(args.filename)), args.filename, frameOffsets, sampleOffsets, tickOffsets):
         idf = DRXFile(filename)
+        
+        # Offset, if needed
+        o = 0
+        if args.skip != 0.0:
+            o = idf.offset(args.skip)
             
         # Find out how many frame sets are in each file
         srate = idf.get_info('sample_rate')
         beampols = idf.get_info('nbeampol')
         tunepol = beampols
         nFramesFile = idf.get_info('nframe')
-        
-        # Offset, if needed
-        o = 0
-        if args.skip != 0.0:
-            o = idf.offset(args.skip)
-        nFramesFile -= int(o*srate/srate)*tunepol
         
         # Additional seek for timetag alignment across the files
         o += idf.offset(frameOffset*4096/srate)
