@@ -778,7 +778,7 @@ parallel.  See the individual functions for more details.");
 */
 
 static int helper_exec(PyObject *module) {
-		import_array();
+		import_array1(-1);
 		PyObject *all;
 	
 		// Version information
