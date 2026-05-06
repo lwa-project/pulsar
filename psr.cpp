@@ -81,7 +81,7 @@ See the inidividual functions for more details.");
 */
 
 static int psr_exec(PyObject *module) {
-		import_array();
+		import_array1(-1);
 		
 		// Version information
 		PyModule_AddObject(module, "__version__", PyUnicode_FromString("0.6"));
