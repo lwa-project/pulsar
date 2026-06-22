@@ -223,7 +223,7 @@ def main(args):
         pfo.hdr.obs_mode = "SEARCH"
         pfo.hdr.telescope = "LWA"
         pfo.hdr.frontend = "LWA"
-        pfo.hdr.backend = "DRX"
+        pfo.hdr.backend = "DRX" if isinstance(idf, DRXFile) else "DRX8"
         pfo.hdr.project_id = "Pulsar"
         pfo.hdr.ra_str = args.ra
         pfo.hdr.dec_str = args.dec
