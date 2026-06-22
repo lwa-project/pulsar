@@ -20,7 +20,7 @@ from multiprocessing import cpu_count
 
 import psrfits_utils.psrfits_utils as pfu
 
-from lsl.reader.ldp import DRXFile, DRX8File
+from lsl.reader.ldp import DRXFile, DRX8File, LWADataFile
 from lsl.reader import errors
 import lsl.astro as astro
 import lsl.common.progress as progress
@@ -132,7 +132,10 @@ def main(args):
     startTimes = []
     nFrames = []
     for filename in args.filename:
-        idf = DRXFile(filename)
+        idf = LWADataFile(filename)
+        if not isinstance(idf, (DRXFile, DRX8File)):
+            raise RuntimeError(f"Expected a DRX or DRX8 file, not {idf}")
+            
         o = 0
         
         # Find out how many frame sets are in each file
@@ -232,7 +235,7 @@ def main(args):
         OptimizeDataLevels = OptimizeDataLevels8Bit
         
     for c,filename,frameOffset,sampleOffset,tickOffset in zip(range(len(args.filename)), args.filename, frameOffsets, sampleOffsets, tickOffsets):
-        idf = DRXFile(filename)
+        idf = LWADataFile(filename)
         
         # Offset, if needed
         o = 0
