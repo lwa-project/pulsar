@@ -18,11 +18,11 @@ from collections import deque
 
 import psrfits_utils.psrfits_utils as pfu
 
-from lsl.reader.ldp import DRXFile
+from lsl.reader.ldp import DRXFile, DRX8File
 from lsl.reader import errors
 import lsl.astro as astro
 import lsl.common.progress as progress
-from lsl.common.dp import fS
+from lsl.common.ndp import fS
 from lsl.statistics import kurtosis
 from lsl.misc.dedispersion import get_coherent_sample_size
 from lsl.misc import parser as aph

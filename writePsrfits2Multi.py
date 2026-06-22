@@ -20,11 +20,11 @@ from multiprocessing import cpu_count
 
 import psrfits_utils.psrfits_utils as pfu
 
-from lsl.reader.ldp import DRXFile
+from lsl.reader.ldp import DRXFile, DRX8File
 from lsl.reader import errors
 import lsl.astro as astro
 import lsl.common.progress as progress
-from lsl.common.dp import fS
+from lsl.common.ndp import fS
 from lsl.statistics import kurtosis
 from lsl.misc import parser as aph
 

@@ -16,7 +16,7 @@ from lsl.reader.ldp import DRXFile
 from lsl.reader import drx, errors, buffer
 from lsl import astro
 from lsl.common import progress
-from lsl.common.dp import fS
+from lsl.common.ndp import fS
 from lsl.misc import parser as aph
 
 
